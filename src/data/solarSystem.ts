@@ -697,7 +697,7 @@ export const PLANETS_DATA: PlanetData[] = [
     perihelionLongitudeDeg: 14.75,
     scaleConfig: {
       orbitRadiusPx: { inner: 540, outer: 202, tno: 76 },
-      bodySizePx: { inner: 11.2, outer: 12.2, tno: 3.8 },
+      bodySizePx: { inner: 14.5, outer: 12.2, tno: 3.8 },
       isPrimaryInZone: { inner: true, outer: true, tno: false },
       isVisibleInZone: { inner: true, outer: true, tno: true },
     },
@@ -1035,7 +1035,7 @@ export const PLANETS_DATA: PlanetData[] = [
     perihelionLongitudeDeg: 44.97,
     scaleConfig: {
       orbitRadiusPx: { inner: 1240, outer: 482, tno: 205 },
-      bodySizePx: { inner: 9.5, outer: 9.0, tno: 5.6 },
+      bodySizePx: { inner: 9.5, outer: 9.0, tno: 9.4 },
       isPrimaryInZone: { inner: false, outer: true, tno: true },
       isVisibleInZone: { inner: false, outer: true, tno: true },
     },

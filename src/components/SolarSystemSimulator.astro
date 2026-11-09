@@ -22,6 +22,7 @@ const moonSystemSwitcherItems = MOON_SYSTEM_TARGET_IDS.map((id) => {
       nameEn: SUN_DATA.nameEn,
       symbol: SUN_DATA.symbol,
       color: '#fbbf24',
+      isMajor: true,
       countLabel: '(恒星)',
       titleText: '太陽 (Sun) の内部断面・コロナ・太陽圏近傍領域を拡大表示',
     };
@@ -33,6 +34,7 @@ const moonSystemSwitcherItems = MOON_SYSTEM_TARGET_IDS.map((id) => {
     nameEn: p.nameEn,
     symbol: p.symbol,
     color: p.color,
+    isMajor: p.bodyClass === 'planet',
     countLabel: p.moons.length > 0 ? `(${p.moons.length})` : '(拡大)',
     titleText:
       p.moons.length > 0
@@ -48,6 +50,19 @@ const outerPlanets = PLANETS_DATA.filter((p) => p.subGroup === 'outer_planet');
 const plutoidDwarfs = PLANETS_DATA.filter((p) => p.subGroup === 'plutoid');
 const candidateDwarfs = PLANETS_DATA.filter((p) => p.subGroup === 'tno_candidate');
 const periodicComets = PLANETS_DATA.filter((p) => p.subGroup === 'comet_periodic');
+
+// 彗星核（正六面体）の3面シェーディング色（上面を明るく、右側面を暗くして立体感を出す）
+function cometCubeFaceColors(color: string): { top: string; left: string; right: string } {
+  const m = /^#?([0-9a-f]{6})$/i.exec(color);
+  const base = m ? parseInt(m[1], 16) : 0x99f6e4;
+  const shade = (factor: number) => {
+    const r = Math.min(255, Math.round(((base >> 16) & 255) * factor));
+    const g = Math.min(255, Math.round(((base >> 8) & 255) * factor));
+    const b = Math.min(255, Math.round((base & 255) * factor));
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+  return { top: shade(1.15), left: shade(0.78), right: shade(0.52) };
+}
 
 // 小惑星帯（メインベルト：2.1〜3.3 AU）の多層半透明ダスト・微惑星粒子群を生成（全240粒子）
 const MAIN_BELT_COLORS = ['#bef264', '#d9f99d', '#fde68a', '#cbd5e1', '#a3e635'];
@@ -242,7 +257,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         <span class="pill-name">縮尺全体</span>
       </button>
 
-      <button type="button" class="nav-pill" data-target-id="sun" title="太陽を選択">
+      <button type="button" class="nav-pill major-pill" data-target-id="sun" title="太陽を選択">
         <span class="pill-symbol" style="color: #fbbf24;">{SUN_DATA.symbol}</span>
         <span class="pill-name">{SUN_DATA.nameJa}</span>
       </button>
@@ -253,7 +268,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         innerPlanets.map((planet) => (
           <button
             type="button"
-            class="nav-pill"
+            class="nav-pill major-pill"
             data-target-id={planet.id}
             data-home-zone={planet.homeZone}
             data-body-class={planet.bodyClass}
@@ -289,7 +304,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         outerPlanets.map((planet) => (
           <button
             type="button"
-            class="nav-pill"
+            class="nav-pill major-pill"
             data-target-id={planet.id}
             data-home-zone={planet.homeZone}
             data-body-class={planet.bodyClass}
@@ -446,7 +461,11 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           </div>
           <div class="legend-row">
             <span class="legend-line comet-line"></span>
-            <span>周期彗星 (ハレー・エンケ・67P等5)</span>
+            <span>周期彗星 (正六面体 / ハレー・エンケ等5)</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-line" style="border-top: 2px dotted #7dd3fc;"></span>
+            <span>探査機の周回軌道 (▲ 正四面体) / 静止参照境界 (◌)</span>
           </div>
         </div>
       </div>
@@ -685,7 +704,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               fill="url(#sun-gradient)"
               filter="url(#sun-glow)"
             />
-            <text id="sun-label" y={SUN_DATA.sizeByZonePx.inner + 15} class="body-label sun-label">太陽</text>
+            <text id="sun-label" y={SUN_DATA.sizeByZonePx.inner + 15} class="body-label sun-label major-label">太陽</text>
           </g>
 
           <!-- 全22天体とそれぞれの衛星 -->
@@ -807,7 +826,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
                 />
 
                 <!-- 天体本体 -->
-                {planet.id === 'haumea' ? (
+                {planet.bodyClass === 'comet' ? (
+                  /* 彗星核：正六面体（等角投影の立方体）。外接円の半径1の単位図形を JS 側で bodySizePx 倍に拡大する */
+                  <g id={`sphere-${planet.id}`} class="planet-sphere comet-cube" transform={`scale(${planet.scaleConfig.bodySizePx.inner})`}>
+                    <polygon points="0,-1 0.866,-0.5 0,0 -0.866,-0.5" fill={cometCubeFaceColors(planet.color).top} class="comet-cube-face" />
+                    <polygon points="-0.866,-0.5 0,0 0,1 -0.866,0.5" fill={cometCubeFaceColors(planet.color).left} class="comet-cube-face" />
+                    <polygon points="0,0 0.866,-0.5 0.866,0.5 0,1" fill={cometCubeFaceColors(planet.color).right} class="comet-cube-face" />
+                  </g>
+                ) : planet.id === 'haumea' ? (
                   <ellipse
                     id={`sphere-${planet.id}`}
                     cx="0"
@@ -896,6 +922,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
                       { 'dwarf-label': planet.bodyClass === 'dwarf_planet' },
                       { 'candidate-label': planet.bodyClass === 'dwarf_candidate' },
                       { 'comet-label': planet.bodyClass === 'comet' },
+                      { 'major-label': planet.bodyClass === 'planet' },
                     ]}
                   >
                     {planet.symbol} {planet.nameJa}
@@ -940,7 +967,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           moonSystemSwitcherItems.map((item) => (
             <button
               type="button"
-              class="moon-target-pill"
+              class:list={['moon-target-pill', { 'major-target-pill': item.isMajor }]}
               data-moon-target-id={item.id}
               title={item.titleText}
             >
@@ -1197,6 +1224,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       elapsedDays: initialElapsedDays,
       sliderAnchorDays: initialElapsedDays,
       visualAnimSec: 0,
+      // 衛星公転専用の積算時間（日）。高速再生時でも速度切替・一時停止で位置が飛ばないよう差分積算する
+      moonTimeDays: initialElapsedDays,
+      msMoonTimeDays: initialElapsedDays,
+      lastClockElapsedDays: initialElapsedDays,
+      // 直近フレームの経過秒（フレームレート非依存の追従係数計算に使用）
+      frameDt: 1 / 60,
       isPlaying: true,
       direction: 1,
       speedDaysPerSec: 10,
@@ -1406,6 +1439,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       cometTailPathEl: SVGPathElement | null;
       moonsGroupEl: SVGGElement | null;
       moons: CachedMoonDom[];
+      /** 直近に軌道パスを生成したときのパラメータキー（変化がなければ再生成しない） */
+      lastOrbitKey: string;
     }
 
     const cachedPlanets: CachedPlanetDom[] = planetsData.map((planet) => ({
@@ -1434,6 +1469,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         sphereEl: document.getElementById(`moon-sphere-${moon.id}`) as SVGCircleElement | null,
         labelEl: document.getElementById(`moon-label-${moon.id}`) as SVGTextElement | null,
       })),
+      lastOrbitKey: '',
     }));
 
     const mainBeltParticlesDom = Array.from(document.querySelectorAll<SVGCircleElement>('.main-particle')).map(
@@ -1476,6 +1512,93 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
      */
     function isMobileSheetLayout(): boolean {
       return window.innerWidth <= 768;
+    }
+
+    // ズーム倍率の上限・下限（ボタン・ホイール・ピンチで共通化）
+    const MIN_ZOOM = 0.38;
+    const MAX_ZOOM = 8.5;
+    function clampZoom(z: number): number {
+      return Math.min(Math.max(z, MIN_ZOOM), MAX_ZOOM);
+    }
+
+    /**
+     * テキストが変化したときだけ textContent を書き換える
+     * （毎フレームの無駄なDOM更新とスクリーンリーダーへの連続通知を防ぐ）
+     */
+    function setTextIfChanged(el: Element | null, text: string) {
+      if (el && el.textContent !== text) el.textContent = text;
+    }
+
+    /**
+     * 探査機・彗星の多面体シンボルを描画するためのSVGヘルパー
+     * - 彗星: 正六面体（等角投影の立方体）
+     * - 探査機: 正四面体
+     */
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    function shadeColor(hex: string, factor: number): string {
+      const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+      if (!m) return hex;
+      const n = parseInt(m[1], 16);
+      const r = Math.min(255, Math.round(((n >> 16) & 255) * factor));
+      const g = Math.min(255, Math.round(((n >> 8) & 255) * factor));
+      const b = Math.min(255, Math.round((n & 255) * factor));
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    /**
+     * 外接円の半径1の正六面体（立方体）を3面シェーディングで描画した子要素を group に追加する
+     */
+    function appendCubeShape(group: SVGElement, color: string) {
+      const k = 0.866;
+      const pts = {
+        top: '0,-1',
+        ur: `${k},-0.5`,
+        lr: `${k},0.5`,
+        bottom: '0,1',
+        ll: `-${k},0.5`,
+        ul: `-${k},-0.5`,
+        c: '0,0',
+      };
+      const faces: [string, string][] = [
+        [`${pts.top} ${pts.ur} ${pts.c} ${pts.ul}`, shadeColor(color, 1.18)],
+        [`${pts.ul} ${pts.c} ${pts.bottom} ${pts.ll}`, shadeColor(color, 0.78)],
+        [`${pts.c} ${pts.ur} ${pts.lr} ${pts.bottom}`, shadeColor(color, 0.55)],
+      ];
+      for (const [points, fill] of faces) {
+        const poly = document.createElementNS(SVG_NS, 'polygon');
+        poly.setAttribute('points', points);
+        poly.setAttribute('fill', fill);
+        poly.setAttribute('stroke', 'rgba(4, 7, 17, 0.75)');
+        poly.setAttribute('stroke-width', '0.12');
+        poly.setAttribute('stroke-linejoin', 'round');
+        group.appendChild(poly);
+      }
+    }
+
+    /**
+     * 外接円の半径1の正四面体（探査機）を3面シェーディングで描画した子要素を group に追加する
+     * （外周の三角形＋手前側頂点から3頂点への稜線で立体感を出す）
+     */
+    function appendTetrahedronShape(group: SVGElement, color: string) {
+      const A = '0,-1';
+      const B = '-0.94,0.62';
+      const C = '0.94,0.62';
+      const D = '0.1,0.18';
+      const faces: [string, string][] = [
+        [`${A} ${B} ${D}`, shadeColor(color, 1.15)],
+        [`${A} ${D} ${C}`, shadeColor(color, 0.8)],
+        [`${B} ${C} ${D}`, shadeColor(color, 0.55)],
+      ];
+      for (const [points, fill] of faces) {
+        const poly = document.createElementNS(SVG_NS, 'polygon');
+        poly.setAttribute('points', points);
+        poly.setAttribute('fill', fill);
+        poly.setAttribute('stroke', 'rgba(4, 7, 17, 0.8)');
+        poly.setAttribute('stroke-width', '0.1');
+        poly.setAttribute('stroke-linejoin', 'round');
+        group.appendChild(poly);
+      }
     }
 
     function normalizeDegrees(deg: number): number {
@@ -1559,42 +1682,51 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
     /**
      * 太陽・黄経グリッド・小惑星帯・カイパーベルトの描画を更新する
+     * （各レイヤーのパラメータが変化していないフレームではDOMの属性書き換えを省略し、負荷を抑える）
      */
+    let lastSunGridKey = '';
+    let lastMainBeltKey = '';
+    let lastKuiperBeltKey = '';
+
     function updateSunGridAndBelts() {
       const tiltY = simState.tiltY;
       const sunR = simState.sunRadiusPx;
 
-      if (sunSphereEl) sunSphereEl.setAttribute('r', sunR.toFixed(2));
-      if (sunCoronaInnerEl) sunCoronaInnerEl.setAttribute('r', (sunR * 1.25).toFixed(2));
-      if (sunCoronaOuterEl) sunCoronaOuterEl.setAttribute('r', (sunR * 1.62).toFixed(2));
-      if (sunLabelEl) {
-        sunLabelEl.setAttribute('y', (sunR + 13).toFixed(1));
-        sunLabelEl.style.opacity = simState.activeZone === 'tno' ? '0.6' : '1';
-      }
-
-      const maxRadius = 575;
-      if (gridOuterRingEl) {
-        gridOuterRingEl.setAttribute('rx', maxRadius.toFixed(1));
-        gridOuterRingEl.setAttribute('ry', (maxRadius * tiltY).toFixed(1));
-      }
-      const innerSpokeStart = Math.max(20, sunR + 12);
-      for (const tick of gridTicks) {
-        const rad = -tick.deg * DEG_TO_RAD;
-        const cosA = Math.cos(rad);
-        const sinA = Math.sin(rad);
-        const x2 = cosA * maxRadius;
-        const y2 = sinA * maxRadius * tiltY;
-        const lx = cosA * (maxRadius + 22);
-        const ly = sinA * (maxRadius + 22) * tiltY + 4;
-        if (tick.lineEl) {
-          tick.lineEl.setAttribute('x1', (cosA * innerSpokeStart).toFixed(1));
-          tick.lineEl.setAttribute('y1', (sinA * innerSpokeStart * tiltY).toFixed(1));
-          tick.lineEl.setAttribute('x2', x2.toFixed(1));
-          tick.lineEl.setAttribute('y2', y2.toFixed(1));
+      const sunGridKey = `${sunR.toFixed(2)}|${tiltY.toFixed(3)}|${simState.activeZone}`;
+      if (sunGridKey !== lastSunGridKey) {
+        lastSunGridKey = sunGridKey;
+        if (sunSphereEl) sunSphereEl.setAttribute('r', sunR.toFixed(2));
+        if (sunCoronaInnerEl) sunCoronaInnerEl.setAttribute('r', (sunR * 1.25).toFixed(2));
+        if (sunCoronaOuterEl) sunCoronaOuterEl.setAttribute('r', (sunR * 1.62).toFixed(2));
+        if (sunLabelEl) {
+          sunLabelEl.setAttribute('y', (sunR + 13).toFixed(1));
+          sunLabelEl.style.opacity = simState.activeZone === 'tno' ? '0.6' : '1';
         }
-        if (tick.textEl) {
-          tick.textEl.setAttribute('x', lx.toFixed(1));
-          tick.textEl.setAttribute('y', ly.toFixed(1));
+
+        const maxRadius = 575;
+        if (gridOuterRingEl) {
+          gridOuterRingEl.setAttribute('rx', maxRadius.toFixed(1));
+          gridOuterRingEl.setAttribute('ry', (maxRadius * tiltY).toFixed(1));
+        }
+        const innerSpokeStart = Math.max(20, sunR + 12);
+        for (const tick of gridTicks) {
+          const rad = -tick.deg * DEG_TO_RAD;
+          const cosA = Math.cos(rad);
+          const sinA = Math.sin(rad);
+          const x2 = cosA * maxRadius;
+          const y2 = sinA * maxRadius * tiltY;
+          const lx = cosA * (maxRadius + 22);
+          const ly = sinA * (maxRadius + 22) * tiltY + 4;
+          if (tick.lineEl) {
+            tick.lineEl.setAttribute('x1', (cosA * innerSpokeStart).toFixed(1));
+            tick.lineEl.setAttribute('y1', (sinA * innerSpokeStart * tiltY).toFixed(1));
+            tick.lineEl.setAttribute('x2', x2.toFixed(1));
+            tick.lineEl.setAttribute('y2', y2.toFixed(1));
+          }
+          if (tick.textEl) {
+            tick.textEl.setAttribute('x', lx.toFixed(1));
+            tick.textEl.setAttribute('y', ly.toFixed(1));
+          }
         }
       }
 
@@ -1613,32 +1745,35 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const ceresAuR = bodyAnimState['ceres']?.auOrbitRadiusPx ?? simState.mainBeltRadiusPx;
         const mainCenterR = lerp(simState.mainBeltRadiusPx, ceresAuR, auBlend);
         const mainWidth = simState.mainBeltWidthPx * lerp(1.0, 1.18, auBlend);
+        const mainBeltKey = `${mainCenterR.toFixed(1)}|${mainWidth.toFixed(1)}|${tiltY.toFixed(3)}|${d.toFixed(2)}|${animT.toFixed(2)}`;
+        if (mainBeltKey !== lastMainBeltKey) {
+          lastMainBeltKey = mainBeltKey;
+          if (mainBeltHaloEl) {
+            mainBeltHaloEl.setAttribute('rx', mainCenterR.toFixed(1));
+            mainBeltHaloEl.setAttribute('ry', (mainCenterR * tiltY).toFixed(1));
+            mainBeltHaloEl.setAttribute('stroke-width', (mainWidth * 1.65).toFixed(1));
+          }
+          mainBeltBandEl.setAttribute('rx', mainCenterR.toFixed(1));
+          mainBeltBandEl.setAttribute('ry', (mainCenterR * tiltY).toFixed(1));
+          mainBeltBandEl.setAttribute('stroke-width', mainWidth.toFixed(1));
 
-        if (mainBeltHaloEl) {
-          mainBeltHaloEl.setAttribute('rx', mainCenterR.toFixed(1));
-          mainBeltHaloEl.setAttribute('ry', (mainCenterR * tiltY).toFixed(1));
-          mainBeltHaloEl.setAttribute('stroke-width', (mainWidth * 1.65).toFixed(1));
-        }
-        mainBeltBandEl.setAttribute('rx', mainCenterR.toFixed(1));
-        mainBeltBandEl.setAttribute('ry', (mainCenterR * tiltY).toFixed(1));
-        mainBeltBandEl.setAttribute('stroke-width', mainWidth.toFixed(1));
+          for (const p of mainBeltParticlesDom) {
+            // 反時計回り（順行）ケプラー公転 ＋ 実時間ドリフト
+            const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT;
+            const cosA = Math.cos(curAngle);
+            const sinA = Math.sin(curAngle);
+            const eccRadialWave = Math.cos(curAngle + p.phase) * p.ecc * mainWidth;
+            const r = mainCenterR + p.offset * mainWidth + eccRadialWave;
 
-        for (const p of mainBeltParticlesDom) {
-          // 反時計回り（順行）ケプラー公転 ＋ 実時間ドリフト
-          const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT;
-          const cosA = Math.cos(curAngle);
-          const sinA = Math.sin(curAngle);
-          const eccRadialWave = Math.cos(curAngle + p.phase) * p.ecc * mainWidth;
-          const r = mainCenterR + p.offset * mainWidth + eccRadialWave;
+            p.el.setAttribute('cx', (cosA * r).toFixed(1));
+            p.el.setAttribute('cy', (sinA * r * tiltY).toFixed(1));
 
-          p.el.setAttribute('cx', (cosA * r).toFixed(1));
-          p.el.setAttribute('cy', (sinA * r * tiltY).toFixed(1));
-
-          // 3Dチルト時の奥行き透明度変調と微細なシンチレーション（透明感のゆらぎ）
-          const shimmer = 0.78 + 0.22 * Math.sin(animT * p.shimmerSpeed + p.phase);
-          const depthAlpha = 1 + sinA * tiltDepthFactor * 0.28;
-          const alpha = Math.max(0.04, Math.min(0.75, p.baseOpacity * shimmer * depthAlpha));
-          p.el.setAttribute('fill-opacity', alpha.toFixed(3));
+            // 3Dチルト時の奥行き透明度変調と微細なシンチレーション（透明感のゆらぎ）
+            const shimmer = 0.78 + 0.22 * Math.sin(animT * p.shimmerSpeed + p.phase);
+            const depthAlpha = 1 + sinA * tiltDepthFactor * 0.28;
+            const alpha = Math.max(0.04, Math.min(0.75, p.baseOpacity * shimmer * depthAlpha));
+            p.el.setAttribute('fill-opacity', alpha.toFixed(3));
+          }
         }
       }
 
@@ -1651,30 +1786,33 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const haumeaAuR = bodyAnimState['haumea']?.auOrbitRadiusPx ?? simState.kuiperBeltRadiusPx;
         const kuiperCenterR = lerp(simState.kuiperBeltRadiusPx, haumeaAuR, auBlend);
         const kuiperWidth = simState.kuiperBeltWidthPx * lerp(1.0, 1.12, auBlend);
+        const kuiperBeltKey = `${kuiperCenterR.toFixed(1)}|${kuiperWidth.toFixed(1)}|${tiltY.toFixed(3)}|${d.toFixed(2)}|${animT.toFixed(2)}`;
+        if (kuiperBeltKey !== lastKuiperBeltKey) {
+          lastKuiperBeltKey = kuiperBeltKey;
+          if (kuiperBeltHaloEl) {
+            kuiperBeltHaloEl.setAttribute('rx', kuiperCenterR.toFixed(1));
+            kuiperBeltHaloEl.setAttribute('ry', (kuiperCenterR * tiltY).toFixed(1));
+            kuiperBeltHaloEl.setAttribute('stroke-width', (kuiperWidth * 1.55).toFixed(1));
+          }
+          kuiperBeltBandEl.setAttribute('rx', kuiperCenterR.toFixed(1));
+          kuiperBeltBandEl.setAttribute('ry', (kuiperCenterR * tiltY).toFixed(1));
+          kuiperBeltBandEl.setAttribute('stroke-width', kuiperWidth.toFixed(1));
 
-        if (kuiperBeltHaloEl) {
-          kuiperBeltHaloEl.setAttribute('rx', kuiperCenterR.toFixed(1));
-          kuiperBeltHaloEl.setAttribute('ry', (kuiperCenterR * tiltY).toFixed(1));
-          kuiperBeltHaloEl.setAttribute('stroke-width', (kuiperWidth * 1.55).toFixed(1));
-        }
-        kuiperBeltBandEl.setAttribute('rx', kuiperCenterR.toFixed(1));
-        kuiperBeltBandEl.setAttribute('ry', (kuiperCenterR * tiltY).toFixed(1));
-        kuiperBeltBandEl.setAttribute('stroke-width', kuiperWidth.toFixed(1));
+          for (const p of kuiperBeltParticlesDom) {
+            const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT;
+            const cosA = Math.cos(curAngle);
+            const sinA = Math.sin(curAngle);
+            const eccRadialWave = Math.cos(curAngle + p.phase) * p.ecc * kuiperWidth;
+            const r = kuiperCenterR + p.offset * kuiperWidth + eccRadialWave;
 
-        for (const p of kuiperBeltParticlesDom) {
-          const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT;
-          const cosA = Math.cos(curAngle);
-          const sinA = Math.sin(curAngle);
-          const eccRadialWave = Math.cos(curAngle + p.phase) * p.ecc * kuiperWidth;
-          const r = kuiperCenterR + p.offset * kuiperWidth + eccRadialWave;
+            p.el.setAttribute('cx', (cosA * r).toFixed(1));
+            p.el.setAttribute('cy', (sinA * r * tiltY).toFixed(1));
 
-          p.el.setAttribute('cx', (cosA * r).toFixed(1));
-          p.el.setAttribute('cy', (sinA * r * tiltY).toFixed(1));
-
-          const shimmer = 0.76 + 0.24 * Math.sin(animT * p.shimmerSpeed + p.phase);
-          const depthAlpha = 1 + sinA * tiltDepthFactor * 0.28;
-          const alpha = Math.max(0.04, Math.min(0.72, p.baseOpacity * shimmer * depthAlpha));
-          p.el.setAttribute('fill-opacity', alpha.toFixed(3));
+            const shimmer = 0.76 + 0.24 * Math.sin(animT * p.shimmerSpeed + p.phase);
+            const depthAlpha = 1 + sinA * tiltDepthFactor * 0.28;
+            const alpha = Math.max(0.04, Math.min(0.72, p.baseOpacity * shimmer * depthAlpha));
+            p.el.setAttribute('fill-opacity', alpha.toFixed(3));
+          }
         }
       }
     }
@@ -1689,7 +1827,17 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
       const invZoomLabelScale = 1 / Math.pow(Math.max(1, simState.cameraZoom), 0.55);
 
-      updateSunGridAndBelts();
+      // 衛星公転用の時間を差分積算（高速再生時は速度に反比例して減速し、速度変更・一時停止・日付ジャンプでも位置が連続する）
+      const clockDelta = simState.elapsedDays - simState.lastClockElapsedDays;
+      simState.lastClockElapsedDays = simState.elapsedDays;
+      const spd = simState.speedDaysPerSec;
+      simState.moonTimeDays += clockDelta * (spd > 12 ? 6 / spd : 1);
+      simState.msMoonTimeDays += clockDelta * (spd > 12 ? 3.5 / spd : 1);
+
+      // 拡大専用ビュー中は黄経グリッド・小惑星帯・カイパーベルトが非表示なので更新を省略する
+      if (!simState.isMoonSystemView) {
+        updateSunGridAndBelts();
+      }
 
       for (const item of cachedPlanets) {
         const p = item.data;
@@ -1719,12 +1867,16 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const displayEcc = anim.displayEcc;
         const isDwarfOrCandidate = p.bodyClass === 'dwarf_planet' || p.bodyClass === 'dwarf_candidate';
 
-        // 軌道パスの更新
+        // 軌道パスの更新（軌道形状のパラメータが変化したときだけパスを再生成する）
         if (item.orbitEl) {
-          item.orbitEl.setAttribute(
-            'd',
-            buildOrbitPathD(displaySemiMajorPx, displayEcc, p.perihelionLongitudeDeg, tiltY)
-          );
+          const orbitKey = `${displaySemiMajorPx.toFixed(1)}|${displayEcc.toFixed(4)}|${tiltY.toFixed(3)}`;
+          if (orbitKey !== item.lastOrbitKey) {
+            item.lastOrbitKey = orbitKey;
+            item.orbitEl.setAttribute(
+              'd',
+              buildOrbitPathD(displaySemiMajorPx, displayEcc, p.perihelionLongitudeDeg, tiltY)
+            );
+          }
           let orbitAlpha = effectiveOpacity;
           if (simState.highlightDwarfs && !simState.highlightComets) {
             orbitAlpha = isDwarfOrCandidate ? 1.0 : effectiveOpacity * 0.18;
@@ -1797,7 +1949,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         // 天体球体サイズ・多重環（リング）・選択リングの動的サイズ更新
         const bodyR = anim.bodySizePx;
         if (item.sphereEl) {
-          if (p.id === 'haumea') {
+          if (isComet) {
+            // 彗星核は正六面体（単位サイズの立方体グループを bodyR 倍に拡大）
+            item.sphereEl.setAttribute('transform', `scale(${bodyR.toFixed(2)})`);
+          } else if (p.id === 'haumea') {
             item.sphereEl.setAttribute('rx', (bodyR * 1.32).toFixed(2));
             item.sphereEl.setAttribute('ry', (bodyR * 0.82).toFixed(2));
           } else {
@@ -1886,10 +2041,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         if (showThisMoons && item.moons.length > 0) {
           const moonOrbitScale = isSelected ? 1.15 : lerp(0.55, 1.0, anim.moonVisibility);
 
-          const effectiveDaysForMoons =
-            simState.speedDaysPerSec > 12 && simState.isPlaying
-              ? d * (6 / simState.speedDaysPerSec)
-              : d;
+          const effectiveDaysForMoons = simState.moonTimeDays;
 
           // 3D斜めチルト視点へのブレンド率 (2D真上=0.0 ⇔ 3D斜め=1.0)
           const view3dFactor = Math.max(0, Math.min(1, (1.0 - tiltY) / (1.0 - 0.44)));
@@ -1967,16 +2119,18 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
 
       // 選択中の天体がある場合、カメラ位置を天体の現在座標へスムーズに追従させる（太陽系全体ビュー時のみ）
+      // 追従係数はフレームレートに依存しないよう、1フレーム(60fps)あたり0.18相当を経過時間で補正する
       if (!simState.isMoonSystemView) {
+        const followK = 1 - Math.pow(1 - 0.18, Math.min(0.1, simState.frameDt) * 60);
         if (simState.selectedBodyId !== 'overview' && simState.selectedBodyId !== 'sun') {
           const targetPos = planetWorldPos[simState.selectedBodyId];
           if (targetPos) {
-            simState.cameraX += (targetPos.x - simState.cameraX) * 0.18;
-            simState.cameraY += (targetPos.y - simState.cameraY) * 0.18;
+            simState.cameraX += (targetPos.x - simState.cameraX) * followK;
+            simState.cameraY += (targetPos.y - simState.cameraY) * followK;
           }
         } else if (simState.selectedBodyId === 'sun') {
-          simState.cameraX += (0 - simState.cameraX) * 0.18;
-          simState.cameraY += (0 - simState.cameraY) * 0.18;
+          simState.cameraX += (0 - simState.cameraX) * followK;
+          simState.cameraY += (0 - simState.cameraY) * followK;
         }
       } else {
         renderMoonSystemView();
@@ -1994,15 +2148,18 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
       // HUDの日付表示と詳細パネルのリアルタイム数値を更新
       const dateStr = formatDaysToDateString(d);
-      if (hudDateEl) hudDateEl.textContent = dateStr;
+      setTextIfChanged(hudDateEl, dateStr);
       if (hudJ2000El) {
         const sign = d >= 0 ? '+' : '';
-        hudJ2000El.textContent = `J2000.0 から ${sign}${d.toLocaleString('ja-JP', {
-          minimumFractionDigits: 1,
-          maximumFractionDigits: 1,
-        })} 日`;
+        setTextIfChanged(
+          hudJ2000El,
+          `J2000.0 から ${sign}${d.toLocaleString('ja-JP', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          })} 日`
+        );
       }
-      if (dateInputEl && document.activeElement !== dateInputEl) {
+      if (dateInputEl && document.activeElement !== dateInputEl && dateInputEl.value !== dateStr) {
         dateInputEl.value = dateStr;
       }
 
@@ -2010,14 +2167,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const pPos = planetWorldPos[simState.selectedBodyId];
         const earthPos = planetWorldPos['earth'];
         if (pPos && earthPos) {
-          if (liveLongitudeEl) liveLongitudeEl.textContent = `${pPos.longitudeDeg.toFixed(1)}°`;
-          if (liveSunDistEl) liveSunDistEl.textContent = `${pPos.helioDistAu.toFixed(2)} AU`;
+          setTextIfChanged(liveLongitudeEl, `${pPos.longitudeDeg.toFixed(1)}°`);
+          setTextIfChanged(liveSunDistEl, `${pPos.helioDistAu.toFixed(2)} AU`);
           if (liveEarthDistEl) {
             if (simState.selectedBodyId === 'earth') {
-              liveEarthDistEl.textContent = '0.000 AU (基準)';
+              setTextIfChanged(liveEarthDistEl, '0.000 AU (基準)');
             } else {
               const distFromEarth = Math.hypot(pPos.auX - earthPos.auX, pPos.auY - earthPos.auY);
-              liveEarthDistEl.textContent = `${distFromEarth.toFixed(2)} AU`;
+              setTextIfChanged(liveEarthDistEl, `${distFromEarth.toFixed(2)} AU`);
             }
           }
         }
@@ -2025,17 +2182,46 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     // GSAP Ticker によるメインループ制御
+    // 日付ジャンプ中のトゥイーン（再生による加算とトゥイーンが競合しないよう、ジャンプ中は再生加算を止める）
+    let dateJumpTween: gsap.core.Tween | null = null;
+
+    /**
+     * 指定したJ2000起点日数へ滑らかにジャンプし、指定日にぴったり着地させる
+     */
+    function jumpToDay(targetDays: number, duration: number) {
+      simState.sliderAnchorDays = targetDays;
+      dateJumpTween?.kill();
+      dateJumpTween = gsap.to(simState, {
+        elapsedDays: targetDays,
+        duration,
+        ease: 'power3.out',
+        overwrite: 'auto',
+        onComplete: () => {
+          dateJumpTween = null;
+        },
+      });
+    }
+
     let lastTickerTime = gsap.ticker.time;
     gsap.ticker.add(() => {
       const nowTime = gsap.ticker.time;
+      // タブが非表示（バックグラウンド）の間は計算とDOM更新を休止してCPU/GPU負荷を抑える
+      if (document.hidden) {
+        lastTickerTime = nowTime;
+        return;
+      }
       const dt = Math.min(nowTime - lastTickerTime, 0.1);
       lastTickerTime = nowTime;
+      simState.frameDt = dt > 0 ? dt : 1 / 60;
 
       if (simState.isPlaying) {
-        const deltaDays = dt * simState.speedDaysPerSec * simState.direction;
-        simState.elapsedDays += deltaDays;
-        simState.sliderAnchorDays += deltaDays;
         simState.visualAnimSec += dt * simState.direction;
+        // 日付ジャンプのトゥイーン中は経過日数の再生加算を止め、指定日にぴったり着地させる
+        if (!dateJumpTween) {
+          const deltaDays = dt * simState.speedDaysPerSec * simState.direction;
+          simState.elapsedDays += deltaDays;
+          simState.sliderAnchorDays += deltaDays;
+        }
       }
 
       renderSolarSystem();
@@ -2310,6 +2496,77 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     };
 
     /**
+     * 近傍基準圏のうち「実在の探査機が周回した軌道」を示すID。
+     * これらのみ小さな正四面体（探査機）が軌道を周回する。
+     * それ以外（ロッシュ限界・ヒル球・アルヴェーン臨界面・外気圏境界など）は天体ではない参照境界であり、
+     * 衛星と誤解されないよう公転するマーカーは置かず、静止した境界リングとラベルだけで表示する。
+     */
+    const PROBE_ZONE_IDS = new Set([
+      'sun_parker_perihelion',
+      'mercury_bepicolombo_orbit',
+      'venus_akatsuki_orbit',
+      'ceres_dawn_lamo',
+    ]);
+
+    function isProbeZone(id: string): boolean {
+      return PROBE_ZONE_IDS.has(id);
+    }
+
+    /**
+     * 近傍基準圏のカード（詳細パネル用）のHTMLを生成する
+     */
+    function buildNearZoneCardsHtml(zones: NearSpaceZoneConfig[], distanceLabel: string): string {
+      return zones
+        .map((z) => {
+          const probe = isProbeZone(z.id);
+          const kindBadge = probe
+            ? '<span class="zone-kind-badge is-probe">▲ 探査機が周回</span>'
+            : '<span class="zone-kind-badge is-boundary">◌ 参照境界（天体ではありません）</span>';
+          return `
+            <div class="moon-card" data-moon-card-id="${z.id}">
+              <div class="moon-card-header">
+                <span class="moon-card-name">
+                  <span class="moon-dot" style="background:${z.color}"></span>
+                  ${z.nameJa} <small>(${z.nameEn})</small>
+                </span>
+                <span class="moon-card-period ${z.orbitalPeriodDays < 0 ? 'retro-badge' : ''}">${z.badgeLabel}</span>
+              </div>
+              <div class="moon-card-meta">
+                ${kindBadge} ${distanceLabel}: 約${z.distanceKm.toLocaleString()} km (${z.ratioLabel})
+              </div>
+              <p class="moon-card-desc">${z.description}</p>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    /**
+     * 詳細パネル内のカード群（衛星・近傍基準圏）へハイライト連動のイベントを登録する
+     */
+    function bindMoonCardHighlight(container: HTMLElement | null) {
+      if (!container) return;
+      const cards = container.querySelectorAll<HTMLElement>('[data-moon-card-id]');
+      cards.forEach((card) => {
+        const cardId = card.dataset.moonCardId || '';
+        card.addEventListener('mouseenter', () => {
+          simState.highlightedMoonId = cardId;
+          card.classList.add('active');
+        });
+        card.addEventListener('mouseleave', () => {
+          simState.highlightedMoonId = '';
+          card.classList.remove('active');
+        });
+        card.addEventListener('click', () => {
+          simState.highlightedMoonId = simState.highlightedMoonId === cardId ? '' : cardId;
+          container
+            .querySelectorAll<HTMLElement>('[data-moon-card-id]')
+            .forEach((c) => c.classList.toggle('active', c.dataset.moonCardId === simState.highlightedMoonId));
+        });
+      });
+    }
+
+    /**
      * 太陽・8惑星・5公認準惑星の拡大専用ビューにおける専用アニメーション説明ラベル
      */
     const DEDICATED_ANIM_LABELS: Record<string, string> = {
@@ -2365,6 +2622,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         autoRadiusPx: number;
         realRadiusPx: number;
         expandedSizePx: number;
+        /** 'moon': 自然衛星 / 'probe': 探査機（正四面体） / 'boundary': 静止した参照境界リング（公転しない） */
+        kind: 'moon' | 'probe' | 'boundary';
         orbitEl: SVGEllipseElement;
         orbitTagEl: SVGTextElement;
         nodeEl: SVGGElement;
@@ -3845,7 +4104,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       centralTitleEl.setAttribute('x', '0');
       centralTitleEl.setAttribute('y', String(centralLabelY));
       centralTitleEl.setAttribute('text-anchor', 'middle');
-      centralTitleEl.setAttribute('class', 'ms-central-title');
+      const isMajorCentral = isSun || planet?.bodyClass === 'planet';
+      centralTitleEl.setAttribute('class', isMajorCentral ? 'ms-central-title is-major-central' : 'ms-central-title');
       centralTitleEl.textContent = `${bodySymbol} ${bodyNameJa} (${bodyNameEn})`;
       msCentralPlanetGroupEl.appendChild(centralTitleEl);
 
@@ -3873,8 +4133,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
 
       // 3. 各衛星の拡大軌道（または太陽・水星・金星・ケレスの近傍基準リング）とノードを構築
+      //    - 自然衛星: 球体が公転
+      //    - 探査機が周回した軌道: 小さな正四面体が公転
+      //    - ロッシュ限界・ヒル球などの参照境界: 公転しない静止リング＋ラベル（衛星と誤解されないようにする）
+      type OrbitItemKind = 'moon' | 'probe' | 'boundary';
       const orbitItems = hasNaturalMoons
         ? planet!.moons.map((m) => ({
+            kind: 'moon' as OrbitItemKind,
             id: m.id,
             nameJa: m.nameJa,
             nameEn: m.nameEn,
@@ -3889,19 +4154,25 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             }`,
             tagPrefix: `${m.nameJa}軌道`,
           }))
-        : (NO_MOON_NEAR_ZONES[targetId] || []).map((z) => ({
-            id: z.id,
-            nameJa: z.nameJa,
-            nameEn: z.nameEn,
-            distanceKm: z.distanceKm,
-            ratioLabel: z.ratioLabel,
-            orbitalPeriodDays: z.orbitalPeriodDays,
-            initialAngleDeg: z.initialAngleDeg,
-            sizePx: z.sizePx,
-            color: z.color,
-            metaText: `半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel}) ・ ${z.badgeLabel}`,
-            tagPrefix: z.nameJa,
-          }));
+        : (NO_MOON_NEAR_ZONES[targetId] || []).map((z) => {
+            const probe = isProbeZone(z.id);
+            return {
+              kind: (probe ? 'probe' : 'boundary') as OrbitItemKind,
+              id: z.id,
+              nameJa: z.nameJa,
+              nameEn: z.nameEn,
+              distanceKm: z.distanceKm,
+              ratioLabel: z.ratioLabel,
+              orbitalPeriodDays: z.orbitalPeriodDays,
+              initialAngleDeg: z.initialAngleDeg,
+              sizePx: z.sizePx,
+              color: z.color,
+              metaText: probe
+                ? `探査機の周回軌道 半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel}) ・ ${z.badgeLabel}`
+                : `参照境界（公転しません） 半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel})`,
+              tagPrefix: probe ? `${z.nameJa}` : `${z.nameJa}【境界】`,
+            };
+          });
 
       const totalItems = orbitItems.length;
       const minOrbitPx = planet?.hasRings ? 195 : hasNaturalMoons ? 175 : 210;
@@ -3925,15 +4196,20 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           realRadiusPx = minOrbitPx + norm * (maxOrbitPx - minOrbitPx);
         }
 
-        const expandedSizePx = hasNaturalMoons
-          ? Math.max(7.0, Math.min(17.5, m.sizePx * 3.1))
-          : Math.max(6.5, Math.min(11.5, m.sizePx * 2.4));
+        const isBoundary = m.kind === 'boundary';
+        const isProbe = m.kind === 'probe';
+
+        const expandedSizePx = isProbe
+          ? Math.max(5.0, Math.min(7.5, m.sizePx * 1.7))
+          : hasNaturalMoons
+            ? Math.max(7.0, Math.min(17.5, m.sizePx * 3.1))
+            : Math.max(6.5, Math.min(11.5, m.sizePx * 2.4));
 
         const orbitEl = document.createElementNS(svgNs, 'ellipse');
         orbitEl.setAttribute('cx', '0');
         orbitEl.setAttribute('cy', '0');
         orbitEl.setAttribute('stroke', m.color);
-        orbitEl.setAttribute('class', 'ms-moon-orbit');
+        orbitEl.setAttribute('class', isBoundary ? 'ms-moon-orbit ms-boundary-ring' : 'ms-moon-orbit');
         msOrbitsGroupEl.appendChild(orbitEl);
 
         const orbitTagEl = document.createElementNS(svgNs, 'text');
@@ -3945,8 +4221,49 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         msOrbitsGroupEl.appendChild(orbitTagEl);
 
         const nodeEl = document.createElementNS(svgNs, 'g');
-        nodeEl.setAttribute('class', 'ms-moon-node');
         nodeEl.dataset.moonId = m.id;
+
+        if (isBoundary) {
+          // 公転しない参照境界：リング上の固定位置にラベルだけを置く（天体マーカーは描かない）
+          nodeEl.setAttribute('class', 'ms-boundary-node');
+          nodeEl.setAttribute('pointer-events', 'none');
+
+          const bTitleEl = document.createElementNS(svgNs, 'text');
+          bTitleEl.setAttribute('x', '0');
+          bTitleEl.setAttribute('y', '-14');
+          bTitleEl.setAttribute('text-anchor', 'middle');
+          bTitleEl.setAttribute('class', 'ms-moon-title ms-boundary-title');
+          bTitleEl.textContent = `◌ ${m.nameJa}`;
+          nodeEl.appendChild(bTitleEl);
+
+          const bMetaEl = document.createElementNS(svgNs, 'text');
+          bMetaEl.setAttribute('x', '0');
+          bMetaEl.setAttribute('y', '-2');
+          bMetaEl.setAttribute('text-anchor', 'middle');
+          bMetaEl.setAttribute('class', 'ms-moon-meta');
+          bMetaEl.textContent = m.metaText;
+          nodeEl.appendChild(bMetaEl);
+
+          msMoonsNodesGroupEl.appendChild(nodeEl);
+
+          moonsCache.push({
+            id: m.id,
+            nameJa: m.nameJa,
+            nameEn: m.nameEn,
+            orbitalPeriodDays: m.orbitalPeriodDays,
+            initialAngleDeg: m.initialAngleDeg,
+            autoRadiusPx,
+            realRadiusPx,
+            expandedSizePx,
+            kind: m.kind,
+            orbitEl,
+            orbitTagEl,
+            nodeEl,
+          });
+          return;
+        }
+
+        nodeEl.setAttribute('class', 'ms-moon-node');
         nodeEl.setAttribute('tabindex', '0');
         nodeEl.setAttribute('role', 'button');
         nodeEl.setAttribute('aria-label', `${m.nameJa} (${m.nameEn})`);
@@ -3962,12 +4279,21 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         selRingEl.setAttribute('class', 'ms-moon-sel-ring');
         nodeEl.appendChild(selRingEl);
 
-        const mSphereEl = document.createElementNS(svgNs, 'circle');
-        mSphereEl.setAttribute('r', expandedSizePx.toFixed(1));
-        mSphereEl.setAttribute('fill', m.color);
-        mSphereEl.setAttribute('filter', 'url(#planet-glow)');
-        mSphereEl.setAttribute('class', 'ms-moon-sphere');
-        nodeEl.appendChild(mSphereEl);
+        if (isProbe) {
+          // 探査機：小さな正四面体
+          const probeShapeEl = document.createElementNS(svgNs, 'g');
+          probeShapeEl.setAttribute('transform', `scale(${expandedSizePx.toFixed(1)})`);
+          probeShapeEl.setAttribute('class', 'ms-probe-shape');
+          appendTetrahedronShape(probeShapeEl, m.color);
+          nodeEl.appendChild(probeShapeEl);
+        } else {
+          const mSphereEl = document.createElementNS(svgNs, 'circle');
+          mSphereEl.setAttribute('r', expandedSizePx.toFixed(1));
+          mSphereEl.setAttribute('fill', m.color);
+          mSphereEl.setAttribute('filter', 'url(#planet-glow)');
+          mSphereEl.setAttribute('class', 'ms-moon-sphere');
+          nodeEl.appendChild(mSphereEl);
+        }
 
         const hitEl = document.createElementNS(svgNs, 'circle');
         hitEl.setAttribute('r', (expandedSizePx + 15).toFixed(1));
@@ -3982,7 +4308,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         titleEl.setAttribute('y', (-(expandedSizePx + 16)).toFixed(1));
         titleEl.setAttribute('text-anchor', 'middle');
         titleEl.setAttribute('class', 'ms-moon-title');
-        titleEl.textContent = `${isRetro ? '↻ ' : '↺ '}${m.nameJa} (${m.nameEn})`;
+        titleEl.textContent = `${isProbe ? '▲ ' : ''}${isRetro ? '↻ ' : '↺ '}${m.nameJa} (${m.nameEn})`;
         nodeEl.appendChild(titleEl);
 
         const metaEl = document.createElementNS(svgNs, 'text');
@@ -3993,8 +4319,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         metaEl.textContent = m.metaText;
         nodeEl.appendChild(metaEl);
 
-        nodeEl.addEventListener('click', (e) => {
-          e.stopPropagation();
+        function toggleMoonHighlight() {
           simState.highlightedMoonId = simState.highlightedMoonId === m.id ? '' : m.id;
           if (detailMoonsListEl) {
             detailMoonsListEl.querySelectorAll<HTMLElement>('[data-moon-card-id]').forEach((card) => {
@@ -4004,6 +4329,18 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
                 card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
               }
             });
+          }
+        }
+
+        nodeEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMoonHighlight();
+        });
+        nodeEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMoonHighlight();
           }
         });
 
@@ -4018,6 +4355,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           autoRadiusPx,
           realRadiusPx,
           expandedSizePx,
+          kind: m.kind,
           orbitEl,
           orbitTagEl,
           nodeEl,
@@ -4044,7 +4382,6 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (!activeMoonStageCache) return;
       const cache = activeMoonStageCache;
       const p = cache.planet;
-      const d = simState.elapsedDays;
       const animT = simState.visualAnimSec;
       const tiltY = simState.tiltY;
       const auBlend = simState.auRatioBlend;
@@ -4120,11 +4457,6 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
 
       // 3. 衛星軌道・近傍重力圏リング・天王星の3D横倒し（76°傾斜）・ノード座標の更新
-      const effectiveDaysForMoons =
-        simState.speedDaysPerSec > 12 && simState.isPlaying
-          ? d * (3.5 / simState.speedDaysPerSec)
-          : d;
-
       const view3dFactor = Math.max(0, Math.min(1, (1.0 - tiltY) / (1.0 - 0.44)));
       const isUranus = cache.targetId === 'uranus';
       const moonPlaneTiltDeg = isUranus ? (p?.ringSystem?.tiltDeg ?? 76) * view3dFactor : 0;
@@ -4157,10 +4489,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         mItem.orbitTagEl.setAttribute('x', tagX.toFixed(1));
         mItem.orbitTagEl.setAttribute('y', (tagY - 5).toFixed(1));
 
-        // 衛星・近傍基準マーカーの現在公転角（負の公転周期＝逆行公転にも対応）
-        const moonAngleDeg = normalizeDegrees(
-          mItem.initialAngleDeg + (360 / mItem.orbitalPeriodDays) * effectiveDaysForMoons
-        );
+        // 衛星・探査機の現在公転角（負の公転周期＝逆行公転にも対応）
+        // 参照境界は公転しないため、初期角度の固定位置にラベルを置く
+        const moonAngleDeg =
+          mItem.kind === 'boundary'
+            ? mItem.initialAngleDeg
+            : normalizeDegrees(
+                mItem.initialAngleDeg + (360 / mItem.orbitalPeriodDays) * simState.msMoonTimeDays
+              );
         const moonRad = -moonAngleDeg * DEG_TO_RAD;
         const localMx = Math.cos(moonRad) * mRx;
         const localMy = Math.sin(moonRad) * mRy;
@@ -4494,6 +4830,24 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     /**
+     * 天体の選択状態（ナビのアクティブ表示・選択リング・詳細パネル）だけを解除する。
+     * カメラ位置・ズームには触れないので、ドラッグでパンしている最中でも安全に呼べる。
+     */
+    function clearSelectionKeepCamera() {
+      if (simState.selectedBodyId === 'overview') return;
+      simState.selectedBodyId = 'overview';
+      simState.highlightedMoonId = '';
+      rootEl!.classList.remove('has-selection');
+      document.querySelectorAll<HTMLButtonElement>('.nav-pill').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.targetId === 'overview');
+      });
+      document.querySelectorAll<SVGGElement>('.celestial-node').forEach((node) => {
+        node.classList.remove('is-selected');
+      });
+      animateDetailPanel(false);
+    }
+
+    /**
      * 詳細パネルに内部・マントル断面構造（同心円断面SVGと各層の解説リスト）を描画する
      */
     function renderInteriorStructureSection(interior?: PlanetData['interiorStructure']) {
@@ -4595,7 +4949,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (detailZoneBadgeEl) {
         detailZoneBadgeEl.textContent = '全縮尺の中心';
       }
-      if (detailNameJaEl) detailNameJaEl.textContent = sunData.nameJa;
+      if (detailNameJaEl) {
+        detailNameJaEl.textContent = sunData.nameJa;
+        detailNameJaEl.style.fontWeight = '800';
+      }
       if (detailNameEnEl) detailNameEnEl.textContent = sunData.nameEn;
       if (detailCategoryEl) detailCategoryEl.textContent = sunData.category;
       if (detailLiveBoxEl) detailLiveBoxEl.style.display = 'none';
@@ -4623,25 +4980,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
       syncOpenMoonViewButton('sun');
       if (detailMoonsListEl) {
-        const sunZonesHtml = (NO_MOON_NEAR_ZONES.sun || [])
-          .map(
-            (z) => `
-              <div class="moon-card" data-moon-card-id="${z.id}">
-                <div class="moon-card-header">
-                  <span class="moon-card-name">
-                    <span class="moon-dot" style="background:${z.color}"></span>
-                    ${z.nameJa} <small>(${z.nameEn})</small>
-                  </span>
-                  <span class="moon-card-period">${z.badgeLabel}</span>
-                </div>
-                <div class="moon-card-meta">
-                  太陽中心からの距離: 約${z.distanceKm.toLocaleString()} km (${z.ratioLabel})
-                </div>
-                <p class="moon-card-desc">${z.description}</p>
-              </div>
-            `
-          )
-          .join('');
+        const sunZonesHtml = buildNearZoneCardsHtml(NO_MOON_NEAR_ZONES.sun || [], '太陽中心からの距離');
 
         const planetsListHtml = planetsData
           .map((p) => {
@@ -4654,10 +4993,11 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               badgeText = '[周期彗星]';
             }
             const absYears = (Math.abs(p.orbitalPeriodDays) / 365.256).toFixed(1);
+            const isMajorPlanet = p.bodyClass === 'planet';
             return `
               <div class="moon-card" data-jump-planet="${p.id}">
                 <div class="moon-card-header">
-                  <span class="moon-card-name" style="color:${p.color}">${p.symbol} ${p.nameJa} <small>${badgeText}</small></span>
+                  <span class="moon-card-name ${isMajorPlanet ? 'is-major-name' : 'is-minor-name'}" style="color:${p.color}">${p.symbol} ${p.nameJa} <small>${badgeText}</small></span>
                   <span class="moon-card-period">${p.semiMajorAxisAu} AU</span>
                 </div>
                 <div class="moon-card-meta">公転周期: 約${absYears}年${p.orbitalPeriodDays < 0 ? ' (逆行)' : ''}</div>
@@ -4668,23 +5008,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
         detailMoonsListEl.innerHTML = sunZonesHtml + planetsListHtml;
 
-        detailMoonsListEl.querySelectorAll<HTMLElement>('[data-moon-card-id]').forEach((card) => {
-          const zoneId = card.dataset.moonCardId || '';
-          card.addEventListener('mouseenter', () => {
-            simState.highlightedMoonId = zoneId;
-            card.classList.add('active');
-          });
-          card.addEventListener('mouseleave', () => {
-            simState.highlightedMoonId = '';
-            card.classList.remove('active');
-          });
-          card.addEventListener('click', () => {
-            simState.highlightedMoonId = simState.highlightedMoonId === zoneId ? '' : zoneId;
-            detailMoonsListEl
-              .querySelectorAll<HTMLElement>('[data-moon-card-id]')
-              .forEach((c) => c.classList.toggle('active', c.dataset.moonCardId === simState.highlightedMoonId));
-          });
-        });
+        bindMoonCardHighlight(detailMoonsListEl);
 
         detailMoonsListEl.querySelectorAll<HTMLElement>('[data-jump-planet]').forEach((card) => {
           card.addEventListener('click', () => {
@@ -4730,7 +5054,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         detailZoneBadgeEl.textContent = zoneMap[planet.homeZone];
       }
 
-      if (detailNameJaEl) detailNameJaEl.textContent = planet.nameJa;
+      if (detailNameJaEl) {
+        detailNameJaEl.textContent = planet.nameJa;
+        detailNameJaEl.style.fontWeight = planet.bodyClass === 'planet' ? '800' : '500';
+      }
       if (detailNameEnEl) detailNameEnEl.textContent = planet.nameEn;
       if (detailCategoryEl) detailCategoryEl.textContent = planet.category;
       if (detailLiveBoxEl) detailLiveBoxEl.style.display = 'block';
@@ -4824,47 +5151,11 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               : `${planet.nameJa}には既知の自然衛星が確認されていません。`
           }</div>`;
 
-          const nearZonesHtml = nearZones
-            .map(
-              (z) => `
-                <div class="moon-card" data-moon-card-id="${z.id}">
-                  <div class="moon-card-header">
-                    <span class="moon-card-name">
-                      <span class="moon-dot" style="background:${z.color}"></span>
-                      ${z.nameJa} <small>(${z.nameEn})</small>
-                    </span>
-                    <span class="moon-card-period ${z.orbitalPeriodDays < 0 ? 'retro-badge' : ''}">
-                      ${z.badgeLabel}
-                    </span>
-                  </div>
-                  <div class="moon-card-meta">
-                    基準半径: 約${z.distanceKm.toLocaleString()} km (${z.ratioLabel})
-                  </div>
-                  <p class="moon-card-desc">${z.description}</p>
-                </div>
-              `
-            )
-            .join('');
+          const nearZonesHtml = buildNearZoneCardsHtml(nearZones, '基準半径');
 
           detailMoonsListEl.innerHTML = baseMsgHtml + nearZonesHtml;
 
-          detailMoonsListEl.querySelectorAll<HTMLElement>('[data-moon-card-id]').forEach((card) => {
-            const zoneId = card.dataset.moonCardId || '';
-            card.addEventListener('mouseenter', () => {
-              simState.highlightedMoonId = zoneId;
-              card.classList.add('active');
-            });
-            card.addEventListener('mouseleave', () => {
-              simState.highlightedMoonId = '';
-              card.classList.remove('active');
-            });
-            card.addEventListener('click', () => {
-              simState.highlightedMoonId = simState.highlightedMoonId === zoneId ? '' : zoneId;
-              detailMoonsListEl
-                .querySelectorAll<HTMLElement>('[data-moon-card-id]')
-                .forEach((c) => c.classList.toggle('active', c.dataset.moonCardId === simState.highlightedMoonId));
-            });
-          });
+          bindMoonCardHighlight(detailMoonsListEl);
         } else {
           detailMoonsListEl.innerHTML = planet.moons
             .map((m) => {
@@ -4890,23 +5181,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             })
             .join('');
 
-          detailMoonsListEl.querySelectorAll<HTMLElement>('[data-moon-card-id]').forEach((card) => {
-            const moonId = card.dataset.moonCardId || '';
-            card.addEventListener('mouseenter', () => {
-              simState.highlightedMoonId = moonId;
-              card.classList.add('active');
-            });
-            card.addEventListener('mouseleave', () => {
-              simState.highlightedMoonId = '';
-              card.classList.remove('active');
-            });
-            card.addEventListener('click', () => {
-              simState.highlightedMoonId = simState.highlightedMoonId === moonId ? '' : moonId;
-              detailMoonsListEl
-                .querySelectorAll<HTMLElement>('[data-moon-card-id]')
-                .forEach((c) => c.classList.toggle('active', c.dataset.moonCardId === simState.highlightedMoonId));
-            });
-          });
+          bindMoonCardHighlight(detailMoonsListEl);
         }
       }
     }
@@ -5056,6 +5331,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       node.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
+          // window 側の「Space で再生/一時停止」ショートカットと二重に動作しないよう伝播を止める
+          e.stopPropagation();
           const bodyId = node.dataset.bodyId;
           if (bodyId) selectCelestialBody(bodyId);
         }
@@ -5155,39 +5432,35 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (!dateInputEl.value) return;
       const targetTime = Date.parse(`${dateInputEl.value}T12:00:00Z`);
       if (Number.isNaN(targetTime)) return;
-      const targetDays = (targetTime - j2000Timestamp) / MS_PER_DAY;
-      simState.sliderAnchorDays = targetDays;
-      gsap.to(simState, {
-        elapsedDays: targetDays,
-        duration: 0.95,
-        ease: 'power3.out',
-      });
+      jumpToDay((targetTime - j2000Timestamp) / MS_PER_DAY, 0.95);
     });
 
     document.getElementById('btn-today')?.addEventListener('click', () => {
-      const todayDays = (Date.now() - j2000Timestamp) / MS_PER_DAY;
-      simState.sliderAnchorDays = todayDays;
-      gsap.to(simState, {
-        elapsedDays: todayDays,
-        duration: 0.9,
-        ease: 'power3.out',
-      });
+      jumpToDay((Date.now() - j2000Timestamp) / MS_PER_DAY, 0.9);
     });
 
     // 9. ズームボタン・マウスホイール・マルチタッチ（ピンチズーム＆スワイプパン）操作
-    document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
+    // ホイール連続操作時は「進行中のトゥイーンの目標値」を基準に倍率を計算する（途中値を基準にすると操作量が不安定になるため）
+    let zoomGoal = simState.cameraZoom;
+    let zoomGoalSetAt = 0;
+    function zoomBy(factor: number, duration: number) {
+      const now = performance.now();
+      const base = now - zoomGoalSetAt < 450 ? zoomGoal : simState.cameraZoom;
+      zoomGoal = clampZoom(base * factor);
+      zoomGoalSetAt = now;
       gsap.to(simState, {
-        cameraZoom: Math.min(simState.cameraZoom * 1.35, 8.0),
-        duration: 0.4,
+        cameraZoom: zoomGoal,
+        duration,
         ease: 'power2.out',
+        overwrite: 'auto',
       });
+    }
+
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
+      zoomBy(1.35, 0.4);
     });
     document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
-      gsap.to(simState, {
-        cameraZoom: Math.max(simState.cameraZoom / 1.35, 0.38),
-        duration: 0.4,
-        ease: 'power2.out',
-      });
+      zoomBy(1 / 1.35, 0.4);
     });
 
     const viewportEl = document.getElementById('viewport-container');
@@ -5195,13 +5468,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       'wheel',
       (e) => {
         e.preventDefault();
-        const factor = e.deltaY < 0 ? 1.14 : 0.88;
-        const nextZoom = Math.min(Math.max(simState.cameraZoom * factor, 0.38), 8.5);
-        gsap.to(simState, {
-          cameraZoom: nextZoom,
-          duration: 0.25,
-          ease: 'power2.out',
-        });
+        zoomBy(e.deltaY < 0 ? 1.14 : 0.88, 0.25);
       },
       { passive: false }
     );
@@ -5228,6 +5495,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       svgEl.setPointerCapture(e.pointerId);
+      // ユーザー操作を優先し、進行中のカメラ移動・ズームのトゥイーンを止める
+      gsap.killTweensOf(simState, 'cameraX,cameraY,cameraZoom');
 
       if (activePointers.size === 1) {
         isDragging = true;
@@ -5251,7 +5520,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (activePointers.size === 2 && initialPinchDist > 10) {
         const currentDist = getPinchDistance();
         const scaleRatio = currentDist / initialPinchDist;
-        simState.cameraZoom = Math.min(Math.max(initialPinchZoom * scaleRatio, 0.38), 8.5);
+        simState.cameraZoom = clampZoom(initialPinchZoom * scaleRatio);
         return;
       }
 
@@ -5266,10 +5535,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           simState.selectedBodyId !== 'overview' &&
           Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 12
         ) {
-          simState.selectedBodyId = 'overview';
-          document.querySelectorAll<HTMLButtonElement>('.nav-pill').forEach((btn) => {
-            btn.classList.toggle('active', btn.dataset.targetId === 'overview');
-          });
+          // 天体追従を解除（カメラ位置はユーザーのパン操作に任せるため、位置・ズームはリセットしない）
+          clearSelectionKeepCamera();
         }
 
         simState.cameraX = cameraStartX - dx;
@@ -5293,16 +5560,24 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
     // キーボードショートカット
     window.addEventListener('keydown', (e) => {
-      if (e.target instanceof HTMLInputElement) return;
-      if (e.code === 'Space') {
-        e.preventDefault();
-        setPlayingState(!simState.isPlaying);
-      } else if (e.code === 'Escape') {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target instanceof Element ? e.target : null;
+      const inTextField = !!target?.closest('input, select, textarea');
+      // ボタン・フォーカス可能な天体ノード上の Space は、そのボタン本来の操作（クリック）を優先する
+      const onActivatable = !!target?.closest('button, [role="button"], a[href]');
+      if (e.code === 'Escape') {
         if (isDrawerOpen) {
           setDrawerOpen(false);
         } else {
           selectCelestialBody('overview');
         }
+        return;
+      }
+      if (inTextField) return;
+      if (e.code === 'Space') {
+        if (onActivatable) return;
+        e.preventDefault();
+        setPlayingState(!simState.isPlaying);
       } else if (e.key === '1') {
         switchScaleZone('inner');
       } else if (e.key === '2') {
@@ -5329,58 +5604,78 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const canvas = document.getElementById('starfield-canvas') as HTMLCanvasElement | null;
     if (canvas) {
       const ctx = canvas.getContext('2d');
-      const stars: { x: number; y: number; r: number; alpha: number; color: string }[] = [];
+      // 星は 0〜1 の正規化座標で保持し、リサイズ時は再生成せず再描画のみ行う（ちらつき防止）
+      const stars: { nx: number; ny: number; r: number; alpha: number; color: string }[] = [];
+      let canvasCssW = 0;
+      let canvasCssH = 0;
 
       function initStars() {
-        if (!canvas || !ctx) return;
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        stars.length = 0;
-        const count = Math.floor((canvas.width * canvas.height) / 3800);
+        const count = Math.floor((window.innerWidth * window.innerHeight) / 3800);
         const palette = ['#ffffff', '#e0f2fe', '#fef3c7', '#cbd5e1'];
+        stars.length = 0;
         for (let i = 0; i < count; i++) {
           stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
+            nx: Math.random(),
+            ny: Math.random(),
             r: Math.random() * 1.35 + 0.25,
             alpha: Math.random() * 0.75 + 0.15,
             color: palette[Math.floor(Math.random() * palette.length)],
           });
         }
+      }
+
+      /**
+       * キャンバスサイズをデバイスピクセル比に合わせて更新し、再描画する（HiDPI対応）
+       */
+      function resizeStarfield() {
+        if (!canvas || !ctx) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvasCssW = window.innerWidth;
+        canvasCssH = window.innerHeight;
+        canvas.width = Math.floor(canvasCssW * dpr);
+        canvas.height = Math.floor(canvasCssH * dpr);
+        canvas.style.width = `${canvasCssW}px`;
+        canvas.style.height = `${canvasCssH}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         drawStars();
       }
 
       function drawStars() {
         if (!canvas || !ctx) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvasCssW, canvasCssH);
 
         const grad = ctx.createRadialGradient(
-          canvas.width * 0.5,
-          canvas.height * 0.5,
+          canvasCssW * 0.5,
+          canvasCssH * 0.5,
           20,
-          canvas.width * 0.5,
-          canvas.height * 0.5,
-          Math.max(canvas.width, canvas.height) * 0.7
+          canvasCssW * 0.5,
+          canvasCssH * 0.5,
+          Math.max(canvasCssW, canvasCssH) * 0.7
         );
         grad.addColorStop(0, 'rgba(15, 25, 55, 0.55)');
         grad.addColorStop(0.5, 'rgba(6, 11, 26, 0.85)');
         grad.addColorStop(1, 'rgba(3, 5, 14, 1)');
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvasCssW, canvasCssH);
 
         for (const s of stars) {
           ctx.globalAlpha = s.alpha;
           ctx.fillStyle = s.color;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.arc(s.nx * canvasCssW, s.ny * canvasCssH, s.r, 0, Math.PI * 2);
           ctx.fill();
         }
         ctx.globalAlpha = 1;
       }
 
       initStars();
+      resizeStarfield();
+
+      let resizeTimer: number | undefined;
       window.addEventListener('resize', () => {
-        initStars();
+        // リサイズ中の連続イベントをまとめて処理（デバウンス）
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(resizeStarfield, 120);
         // 画面回転・リサイズ時に非表示状態の詳細パネル待機座標を更新
         if (detailPanelEl && simState.selectedBodyId === 'overview') {
           const mobile = isMobileSheetLayout();
@@ -5388,6 +5683,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         }
       });
     }
+
+    // 詳細パネル内の「ライブ数値」は毎フレーム更新されるため、スクリーンリーダーへの連続通知を抑止する
+    detailLiveBoxEl?.setAttribute('aria-live', 'off');
   }
 </script>
 
@@ -5856,6 +6154,18 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     flex-shrink: 0;
   }
 
+  /* 太陽・8惑星のナビボタン名は太字で際立たせる */
+  .nav-pill.major-pill .pill-name {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .nav-pill.dwarf-pill .pill-name,
+  .nav-pill.candidate-pill .pill-name,
+  .nav-pill.comet-pill .pill-name {
+    font-weight: 400;
+  }
+
   .nav-pill.dwarf-pill {
     border-style: dashed;
     border-color: rgba(163, 230, 53, 0.42);
@@ -6065,7 +6375,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   .body-label {
     fill: #e2e8f0;
     font-size: 10.2px;
-    font-weight: 600;
+    font-weight: 500;
     text-anchor: middle;
     pointer-events: none;
     paint-order: stroke;
@@ -6075,19 +6385,37 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     transition: opacity 0.25s ease;
   }
 
+  /* 太陽と8惑星の名前は太字で目立たせる */
+  .major-label {
+    fill: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    stroke-width: 3.6px;
+  }
+
   .dwarf-label {
     fill: #e9d5ff;
-    font-size: 9.8px;
+    font-size: 9.5px;
+    font-weight: 400;
   }
 
   .candidate-label {
     fill: #fecdd3;
-    font-size: 9.6px;
+    font-size: 9.3px;
+    font-weight: 400;
   }
 
   .comet-label {
     fill: #99f6e4;
-    font-size: 9.6px;
+    font-size: 9.3px;
+    font-weight: 400;
+  }
+
+  .comet-cube-face {
+    stroke: rgba(4, 7, 17, 0.72);
+    stroke-width: 0.14px;
+    stroke-linejoin: round;
   }
 
   .celestial-node.is-compact-body .planet-label {
@@ -6100,7 +6428,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
   .sun-label {
     fill: #fde047;
-    font-size: 11px;
+    font-size: 11.6px;
+    font-weight: 800;
   }
 
   /* 衛星ラベル */
@@ -6255,7 +6584,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     background: rgba(30, 41, 59, 0.85);
   }
 
-  /* 右側天体詳細パネル（PC表示） */
+  /* 右側天体詳細パネル（PC表示・説明文のテキスト選択を許可） */
   .detail-panel {
     position: absolute;
     top: 0.75rem;
@@ -6274,6 +6603,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     overflow-y: auto;
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
     z-index: 25;
+    user-select: text;
   }
 
   .sheet-drag-handle {
@@ -6718,6 +7048,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     gap: 0.32rem;
   }
 
+  :global(.moon-card-name.is-major-name) {
+    font-weight: 800;
+  }
+
+  :global(.moon-card-name.is-minor-name) {
+    font-weight: 400;
+  }
+
   :global(.moon-dot) {
     width: 8px;
     height: 8px;
@@ -6989,12 +7327,17 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     background: rgba(15, 23, 42, 0.78);
     color: var(--text-main);
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 400;
     padding: 0.25rem 0.56rem;
     border-radius: 999px;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.18s ease;
+  }
+
+  .moon-target-pill.major-target-pill {
+    font-weight: 700;
+    color: #ffffff;
   }
 
   .moon-target-pill:hover {
@@ -7053,11 +7396,17 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
   :global(.ms-central-title) {
     fill: #f8fafc;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13.5px;
+    font-weight: 500;
     paint-order: stroke;
     stroke: rgba(4, 7, 17, 0.92);
     stroke-width: 4px;
+  }
+
+  :global(.ms-central-title.is-major-central) {
+    font-size: 14.5px;
+    font-weight: 800;
+    fill: #ffffff;
   }
 
   :global(.ms-central-sub) {
@@ -7097,6 +7446,38 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     stroke-dasharray: 5 4;
     stroke-opacity: 0.62;
     transition: stroke-opacity 0.2s ease, stroke-width 0.2s ease;
+  }
+
+  /* 公転しない参照境界（ロッシュ限界・ヒル球・アルヴェーン臨界面等）は細かい点線で区別 */
+  :global(.ms-moon-orbit.ms-boundary-ring) {
+    stroke-width: 1.2px;
+    stroke-dasharray: 2 5;
+    stroke-opacity: 0.5;
+  }
+
+  :global(.ms-boundary-title) {
+    font-size: 10.5px;
+    font-weight: 600;
+    fill: #e2e8f0;
+  }
+
+  :global(.zone-kind-badge) {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 0.04rem 0.36rem;
+    border-radius: 4px;
+    margin-right: 0.28rem;
+  }
+
+  :global(.zone-kind-badge.is-probe) {
+    background: rgba(56, 189, 248, 0.2);
+    color: #7dd3fc;
+  }
+
+  :global(.zone-kind-badge.is-boundary) {
+    background: rgba(148, 163, 184, 0.18);
+    color: #cbd5e1;
   }
 
   :global(.ms-moon-orbit.is-highlighted) {
