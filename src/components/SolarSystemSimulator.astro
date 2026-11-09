@@ -421,6 +421,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             <span>☄ 周期彗星 (5天体) の表示</span>
             <span id="badge-toggle-comets" class="switch-state">ON</span>
           </button>
+          <button type="button" id="btn-toggle-probes" class="drawer-switch-btn" title="探査機（ISS、天宮、ジュノー、カッシーニ等）や参照境界線（ロッシュ限界・ヒル球等）の表示切替">
+            <span>🚀 探査機・境界線の表示</span>
+            <span id="badge-toggle-probes" class="switch-state">OFF</span>
+          </button>
         </div>
       </div>
 
@@ -532,12 +536,24 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           <circle id="ms-sphere-clip-circle" cx="0" cy="0" r="52" />
         </clipPath>
 
-        <!-- 太陽の放射グラデーション -->
+        <!-- 全惑星共通：基準半径10pxの円形テクスチャクリップパス -->
+        <clipPath id="planet-texture-clip" clipPathUnits="userSpaceOnUse">
+          <circle cx="0" cy="0" r="10" />
+        </clipPath>
+
+        <!-- 太陽専用：基準半径22pxの光球クリップパス -->
+        <clipPath id="sun-texture-clip" clipPathUnits="userSpaceOnUse">
+          <circle cx="0" cy="0" r="22" />
+        </clipPath>
+
+        <!-- 太陽の多層高解像度グラデーション（中心超白熱プラズマ〜光球〜周辺減光リム） -->
         <radialGradient id="sun-gradient" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stop-color="#fffef0" />
-          <stop offset="35%" stop-color="#fde047" />
-          <stop offset="75%" stop-color="#f59e0b" />
-          <stop offset="100%" stop-color="#ea580c" />
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="18%" stop-color="#fffef0" />
+          <stop offset="45%" stop-color="#fde047" />
+          <stop offset="72%" stop-color="#f59e0b" />
+          <stop offset="90%" stop-color="#ea580c" />
+          <stop offset="100%" stop-color="#9a3412" />
         </radialGradient>
 
         <!-- 彗星の尾（テイル）用グラデーション (+X方向へ伸びる尾を回転させて使用) -->
@@ -547,10 +563,74 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
         </linearGradient>
 
-        <!-- 各天体の球体グラデーション（ケレスはドーン探査機擬似カラー、冥王星はニュー・ホライズンズ実写の配色） -->
+        <!-- 各天体の球体グラデーション（8惑星＋冥王星・ケレス実写ベース高精度配色） -->
         {
           PLANETS_DATA.map((planet) =>
-            planet.id === 'pluto' ? (
+            planet.id === 'mercury' ? (
+              <radialGradient id="grad-mercury" cx="30%" cy="28%" r="72%">
+                <stop offset="0%" stop-color="#f8fafc" stop-opacity="0.9" />
+                <stop offset="25%" stop-color="#cbd5e1" />
+                <stop offset="62%" stop-color="#64748b" />
+                <stop offset="88%" stop-color="#334155" />
+                <stop offset="100%" stop-color="#0f172a" />
+              </radialGradient>
+            ) : planet.id === 'venus' ? (
+              <radialGradient id="grad-venus" cx="32%" cy="28%" r="72%">
+                <stop offset="0%" stop-color="#fffbeb" stop-opacity="0.95" />
+                <stop offset="28%" stop-color="#fef08a" />
+                <stop offset="64%" stop-color="#eab308" />
+                <stop offset="85%" stop-color="#b45309" />
+                <stop offset="100%" stop-color="#451a03" />
+              </radialGradient>
+            ) : planet.id === 'earth' ? (
+              <radialGradient id="grad-earth" cx="30%" cy="26%" r="74%">
+                <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.95" />
+                <stop offset="22%" stop-color="#38bdf8" />
+                <stop offset="58%" stop-color="#0284c7" />
+                <stop offset="85%" stop-color="#1e3a8a" />
+                <stop offset="100%" stop-color="#020617" />
+              </radialGradient>
+            ) : planet.id === 'mars' ? (
+              <radialGradient id="grad-mars" cx="32%" cy="28%" r="72%">
+                <stop offset="0%" stop-color="#fee2e2" stop-opacity="0.92" />
+                <stop offset="26%" stop-color="#f87171" />
+                <stop offset="62%" stop-color="#dc2626" />
+                <stop offset="86%" stop-color="#991b1b" />
+                <stop offset="100%" stop-color="#450a0a" />
+              </radialGradient>
+            ) : planet.id === 'jupiter' ? (
+              <radialGradient id="grad-jupiter" cx="32%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#fffbeb" stop-opacity="0.92" />
+                <stop offset="26%" stop-color="#fde047" />
+                <stop offset="55%" stop-color="#d97706" />
+                <stop offset="84%" stop-color="#92400e" />
+                <stop offset="100%" stop-color="#451a03" />
+              </radialGradient>
+            ) : planet.id === 'saturn' ? (
+              <radialGradient id="grad-saturn" cx="32%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="#fef9c3" stop-opacity="0.92" />
+                <stop offset="28%" stop-color="#fef08a" />
+                <stop offset="62%" stop-color="#ca8a04" />
+                <stop offset="86%" stop-color="#854d0e" />
+                <stop offset="100%" stop-color="#451a03" />
+              </radialGradient>
+            ) : planet.id === 'uranus' ? (
+              <radialGradient id="grad-uranus" cx="30%" cy="28%" r="72%">
+                <stop offset="0%" stop-color="#f0fdfa" stop-opacity="0.95" />
+                <stop offset="28%" stop-color="#67e8f9" />
+                <stop offset="68%" stop-color="#0891b2" />
+                <stop offset="88%" stop-color="#0e7490" />
+                <stop offset="100%" stop-color="#164e63" />
+              </radialGradient>
+            ) : planet.id === 'neptune' ? (
+              <radialGradient id="grad-neptune" cx="30%" cy="28%" r="72%">
+                <stop offset="0%" stop-color="#dbeafe" stop-opacity="0.95" />
+                <stop offset="26%" stop-color="#60a5fa" />
+                <stop offset="62%" stop-color="#2563eb" />
+                <stop offset="86%" stop-color="#1e3a8a" />
+                <stop offset="100%" stop-color="#020617" />
+              </radialGradient>
+            ) : planet.id === 'pluto' ? (
               <radialGradient id="grad-pluto" cx="30%" cy="28%" r="74%">
                 <stop offset="0%" stop-color="#faead8" />
                 <stop offset="36%" stop-color="#dfb695" />
@@ -680,6 +760,20 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         <g id="bodies-layer">
           <!-- 中心の太陽 -->
           <g id="node-sun" class="celestial-node sun-node" data-body-id="sun" tabindex="0" role="button" aria-label="太陽">
+            <!-- 太陽コロナ外部光芒（放射状8方向フレア光条） -->
+            <g id="sun-corona-rays" class="sun-corona-rays" pointer-events="none">
+              {Array.from({ length: 8 }).map((_, i) => {
+                const angle = i * 45;
+                return (
+                  <polygon
+                    points="-1.2,0 0,-34 1.2,0"
+                    fill="#f59e0b"
+                    fill-opacity="0.32"
+                    transform={`rotate(${angle})`}
+                  />
+                );
+              })}
+            </g>
             <circle
               id="sun-corona-outer"
               cx="0"
@@ -704,10 +798,32 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               fill="url(#sun-gradient)"
               filter="url(#sun-glow)"
             />
+            <!-- 太陽光球表面の高精細テクスチャ（粒状斑・黒点群・白斑・周辺減光リム） -->
+            <g id="sun-surface-texture" class="sun-mini-texture" clip-path="url(#sun-texture-clip)" pointer-events="none" transform={`scale(${(SUN_DATA.sizeByZonePx.inner / 22).toFixed(3)})`}>
+              <!-- 対流粒状斑の微細な明暗パターン -->
+              <circle cx="-6.5" cy="-8.5" r="5.2" fill="rgba(254, 240, 138, 0.28)" />
+              <circle cx="8.5" cy="-5.2" r="5.8" fill="rgba(254, 240, 138, 0.24)" />
+              <circle cx="-8.2" cy="7.5" r="5.4" fill="rgba(254, 240, 138, 0.26)" />
+              <circle cx="6.8" cy="8.5" r="6.0" fill="rgba(254, 240, 138, 0.25)" />
+              <circle cx="0" cy="0" r="7.0" fill="rgba(255, 255, 240, 0.35)" />
+              <!-- 巨大黒点群（本影＋半影＋白斑） -->
+              <ellipse cx="-5.2" cy="-3.8" rx="3.0" ry="2.2" fill="#7c2d12" fill-opacity="0.88" />
+              <ellipse cx="-5.2" cy="-3.8" rx="1.8" ry="1.2" fill="#451a03" />
+              <circle cx="-5.2" cy="-3.8" r="0.75" fill="#1c0a02" />
+              <!-- 周囲の白斑（Faculae） -->
+              <ellipse cx="-5.2" cy="-3.8" rx="4.5" ry="3.2" fill="none" stroke="#fef08a" stroke-width="0.7" stroke-opacity="0.85" />
+              <!-- 第2黒点群 -->
+              <circle cx="7.2" cy="3.5" r="1.6" fill="#7c2d12" fill-opacity="0.85" />
+              <circle cx="7.2" cy="3.5" r="0.9" fill="#451a03" />
+              <circle cx="9.2" cy="4.8" r="1.0" fill="#7c2d12" fill-opacity="0.8" />
+              <!-- 周辺減光（Limb Darkening：縁が暗く赤みを帯びる物理現象） -->
+              <circle cx="0" cy="0" r="21.2" fill="none" stroke="#ea580c" stroke-width="2.4" stroke-opacity="0.55" />
+              <circle cx="0" cy="0" r="21.8" fill="none" stroke="#9a3412" stroke-width="1.3" stroke-opacity="0.75" />
+            </g>
             <text id="sun-label" y={SUN_DATA.sizeByZonePx.inner + 15} class="body-label sun-label major-label">太陽</text>
           </g>
 
-          <!-- 全22天体とそれぞれの衛星 -->
+          <!-- 全27天体とそれぞれの衛星 -->
           {
             PLANETS_DATA.map((planet) => (
               <g
@@ -855,6 +971,159 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
                   />
                 )}
 
+                {/* 太陽系8惑星の高解像度ミニチュア表面テクスチャ（実写写真・探査機観測に基づく地形・気候・大気模様） */}
+                {planet.id === 'mercury' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- カロリス盆地（巨大同心円衝突痕） -->
+                    <ellipse cx="-3.2" cy="-2.4" rx="4.2" ry="3.8" fill="rgba(30, 41, 59, 0.45)" />
+                    <ellipse cx="-3.2" cy="-2.4" rx="2.8" ry="2.4" fill="rgba(15, 23, 42, 0.62)" />
+                    <circle cx="-3.2" cy="-2.4" r="1.1" fill="rgba(241, 245, 249, 0.55)" />
+                    <!-- クレーター群と光条（コイパー・クレーター等） -->
+                    <circle cx="2.8" cy="3.2" r="1.6" fill="rgba(15, 23, 42, 0.55)" />
+                    <circle cx="2.8" cy="3.2" r="0.8" fill="#f8fafc" />
+                    <line x1="2.8" y1="3.2" x2="6.2" y2="5.5" stroke="#f8fafc" stroke-width="0.35" stroke-opacity="0.65" />
+                    <line x1="2.8" y1="3.2" x2="0.8" y2="6.2" stroke="#f8fafc" stroke-width="0.35" stroke-opacity="0.65" />
+                    <circle cx="4.2" cy="-3.6" r="1.3" fill="rgba(30, 41, 59, 0.5)" />
+                    <circle cx="-2.2" cy="4.5" r="1.4" fill="rgba(30, 41, 59, 0.45)" />
+                    <!-- 険しい高地・リンクルリッジの陰影 -->
+                    <path d="M -7,2 Q -4,5 1,7" fill="none" stroke="rgba(15, 23, 42, 0.4)" stroke-width="0.6" />
+                  </g>
+                )}
+
+                {planet.id === 'venus' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- スーパーローテーションV字雲（Chevron Patterns） -->
+                    <path d="M -8,-6 Q -1,-4 7,-8" fill="none" stroke="rgba(254, 249, 195, 0.65)" stroke-width="1.2" stroke-linecap="round" />
+                    <path d="M -9,-1 Q -2,0 8,-2" fill="none" stroke="rgba(254, 249, 195, 0.75)" stroke-width="1.6" stroke-linecap="round" />
+                    <path d="M -8,4 Q -1,3 7,2" fill="none" stroke="rgba(254, 249, 195, 0.6)" stroke-width="1.3" stroke-linecap="round" />
+                    <path d="M -7,8 Q -1,7 6,7" fill="none" stroke="rgba(254, 249, 195, 0.5)" stroke-width="1.0" stroke-linecap="round" />
+                    <!-- 紫外線吸収帯の黄褐色濃淡ストリーム -->
+                    <path d="M -10,-3.5 Q -3,-2.5 9,-4.5" fill="none" stroke="rgba(146, 64, 14, 0.35)" stroke-width="1.5" />
+                    <path d="M -9,1.8 Q -2,2.8 8,0.5" fill="none" stroke="rgba(146, 64, 14, 0.32)" stroke-width="1.4" />
+                    <!-- 極渦 -->
+                    <ellipse cx="-0.5" cy="-8.5" rx="3.5" ry="1.2" fill="rgba(180, 83, 9, 0.28)" />
+                    <ellipse cx="0.5" cy="8.5" rx="3.5" ry="1.2" fill="rgba(180, 83, 9, 0.28)" />
+                    <!-- 厚密大気リムグロー -->
+                    <circle cx="0" cy="0" r="9.5" fill="none" stroke="rgba(254, 240, 138, 0.45)" stroke-width="0.8" />
+                  </g>
+                )}
+
+                {planet.id === 'earth' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- ユーラシア・アジア大陸・日本列島 -->
+                    <path d="M -4.5,-7 C -2.5,-8 2,-7.5 4,-6 C 5.5,-4.5 4.5,-2 2,-2.5 C 0.5,-3 -2,-1.5 -3.5,-2.5 C -4.5,-3.5 -5.5,-5 -4.5,-7 Z" fill="#166534" fill-opacity="0.88" />
+                    <path d="M 4.5,-3.5 Q 5.5,-2 4.8,-0.5" fill="none" stroke="#22c55e" stroke-width="0.55" stroke-linecap="round" />
+                    <!-- アフリカ大陸とサハラ砂漠 -->
+                    <path d="M -5.5,-2 C -3.5,-2.5 -2.5,-1 -3,1.5 C -3.5,3.5 -4.5,5.5 -5.5,5 C -6.5,4.5 -7,0 -5.5,-2 Z" fill="#15803d" fill-opacity="0.85" />
+                    <ellipse cx="-4.5" cy="-0.8" rx="1.6" ry="1.1" fill="#ca8a04" fill-opacity="0.75" />
+                    <!-- オーストラリア大陸 -->
+                    <ellipse cx="3.8" cy="3.5" rx="1.8" ry="1.4" fill="#15803d" fill-opacity="0.82" />
+                    <!-- 南北アメリカ大陸（背面〜端） -->
+                    <path d="M -8.5,-5 C -7.5,-4 -7,-2 -7.8,-0.5 C -8.2,1 -8.8,3 -9.2,2 C -9.5,0.5 -9.2,-3 -8.5,-5 Z" fill="#166534" fill-opacity="0.7" />
+                    <!-- 北極海氷 ＆ 南極氷床 -->
+                    <ellipse cx="0" cy="-9.2" rx="4.8" ry="1.6" fill="#ffffff" fill-opacity="0.95" />
+                    <ellipse cx="0" cy="9.2" rx="5.2" ry="1.8" fill="#ffffff" fill-opacity="0.95" />
+                    <!-- 白い台風渦と雲バンド -->
+                    <path d="M -6,-3.5 Q -1,-4.5 5,-3.2 Q 2,-2 -2,-2.5 Z" fill="#ffffff" fill-opacity="0.7" />
+                    <path d="M -3,2.5 Q 1,2 6,3.5 Q 2,4.2 -1,3.2 Z" fill="#ffffff" fill-opacity="0.65" />
+                    <path d="M 1,-1 C 2.5,-1.8 3,-0.5 2.2,0.2 C 1.5,0.8 0.5,0.2 1,-1 Z" fill="#ffffff" fill-opacity="0.85" />
+                    <!-- 大気散乱リムライト（美しい青い大気光） -->
+                    <circle cx="0" cy="0" r="9.6" fill="none" stroke="#38bdf8" stroke-width="0.85" stroke-opacity="0.75" />
+                  </g>
+                )}
+
+                {planet.id === 'mars' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- 北極冠（純白の氷） -->
+                    <ellipse cx="0" cy="-8.8" rx="3.6" ry="1.3" fill="#ffffff" fill-opacity="0.95" />
+                    <!-- 南極冠（小さな氷点） -->
+                    <ellipse cx="0.5" cy="9.0" rx="2.0" ry="0.9" fill="#ffffff" fill-opacity="0.9" />
+                    <!-- 大シルティス平原（濃い玄武岩三角地形） -->
+                    <path d="M -1,-1.5 L 2.5,-4 L 3,0.5 Z" fill="#451a03" fill-opacity="0.75" />
+                    <!-- アキダリア平原（北部の広大な暗色平原） -->
+                    <ellipse cx="-2.5" cy="-5.2" rx="4.5" ry="1.8" fill="#3f1a07" fill-opacity="0.68" />
+                    <!-- 南部暗色高地バンド -->
+                    <path d="M -8,2.5 C -4,1.5 1,4 7,2 C 4,5 -2,4.5 -8,2.5 Z" fill="#3f1a07" fill-opacity="0.65" />
+                    <!-- マリネリス峡谷（赤道付近の長大な亀裂ライン） -->
+                    <path d="M -5,0.8 Q -1,0.2 3.5,0.5" fill="none" stroke="#260b02" stroke-width="0.75" stroke-linecap="round" />
+                    <!-- オリンポス山 -->
+                    <circle cx="-5.5" cy="-2.5" r="1.2" fill="#78350f" fill-opacity="0.7" />
+                    <circle cx="-5.5" cy="-2.5" r="0.45" fill="#fca5a5" />
+                  </g>
+                )}
+
+                {planet.id === 'jupiter' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- 北極冠・南極冠の暗青灰ゾーン -->
+                    <ellipse cx="0" cy="-8.8" rx="8.5" ry="1.8" fill="rgba(88, 47, 7, 0.45)" />
+                    <ellipse cx="0" cy="8.8" rx="8.5" ry="1.8" fill="rgba(88, 47, 7, 0.45)" />
+                    <!-- 北温帯縞（NTB） -->
+                    <rect x="-10" y="-6.2" width="20" height="1.4" fill="#92400e" fill-opacity="0.75" />
+                    <!-- 北赤道縞（NEB：濃く太い赤褐色縞） -->
+                    <rect x="-10" y="-3.6" width="20" height="2.2" fill="#78350f" fill-opacity="0.9" />
+                    <!-- 赤道帯（EZ：クリーム色の明るい帯とフェストゥーン波） -->
+                    <rect x="-10" y="-1.2" width="20" height="1.8" fill="#fef3c7" fill-opacity="0.65" />
+                    <path d="M -9,-1.2 Q -7,-0.2 -5,-1.2 Q -3,-0.2 -1,-1.2 Q 1,-0.2 3,-1.2 Q 5,-0.2 7,-1.2 Q 9,-0.2 10,-1.2" fill="none" stroke="#0284c7" stroke-width="0.45" stroke-opacity="0.55" />
+                    <!-- 南赤道縞（SEB：太い赤褐色縞と大赤斑のくぼみ） -->
+                    <rect x="-10" y="0.8" width="20" height="2.4" fill="#78350f" fill-opacity="0.88" />
+                    <!-- 大赤斑（Great Red Spot / GRS）：南半球の巨大な朱色の嵐 -->
+                    <ellipse cx="2.8" cy="2.5" rx="2.6" ry="1.7" fill="#b91c1c" />
+                    <ellipse cx="2.8" cy="2.5" rx="1.8" ry="1.0" fill="#dc2626" />
+                    <ellipse cx="2.8" cy="2.5" rx="0.9" ry="0.5" fill="#fef08a" fill-opacity="0.75" />
+                    <!-- 南温帯縞（STB） ＆ 白斑（Oval BA） -->
+                    <rect x="-10" y="4.2" width="20" height="1.3" fill="#92400e" fill-opacity="0.72" />
+                    <circle cx="-3.5" cy="4.8" r="0.75" fill="#ffffff" fill-opacity="0.9" />
+                    <circle cx="-6.2" cy="4.8" r="0.6" fill="#ffffff" fill-opacity="0.85" />
+                  </g>
+                )}
+
+                {planet.id === 'saturn' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- 北極の六角形（ヘキサゴン）模様 -->
+                    <polygon points="0,-8.8 1.4,-8.2 1.4,-7.2 0,-6.6 -1.4,-7.2 -1.4,-8.2" fill="rgba(163, 230, 53, 0.45)" stroke="rgba(202, 138, 4, 0.7)" stroke-width="0.3" />
+                    <!-- 繊細な多層黄金色平行気流バンド -->
+                    <rect x="-10" y="-5.5" width="20" height="1.1" fill="#a16207" fill-opacity="0.45" />
+                    <rect x="-10" y="-3.2" width="20" height="1.3" fill="#ca8a04" fill-opacity="0.5" />
+                    <!-- 赤道ジェット気流の明るい黄金バンド -->
+                    <rect x="-10" y="-0.8" width="20" height="1.8" fill="#fef08a" fill-opacity="0.6" />
+                    <rect x="-10" y="1.8" width="20" height="1.3" fill="#a16207" fill-opacity="0.45" />
+                    <rect x="-10" y="4.2" width="20" height="1.1" fill="#854d0e" fill-opacity="0.4" />
+                    <!-- 南極域 -->
+                    <ellipse cx="0" cy="8.6" rx="6.5" ry="1.6" fill="rgba(113, 63, 18, 0.35)" />
+                  </g>
+                )}
+
+                {planet.id === 'uranus' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- 98度横倒し自転軸を反映した極フード（明るい極冠の輝き） -->
+                    <ellipse cx="-4.5" cy="0" rx="3.5" ry="8.5" fill="rgba(236, 254, 255, 0.5)" />
+                    <!-- 横倒し軸に沿ったメタン雲バンド -->
+                    <path d="M -1,-9.5 L -1,9.5" stroke="rgba(8, 145, 178, 0.35)" stroke-width="1.2" />
+                    <path d="M 2.5,-9.2 L 2.5,9.2" stroke="rgba(207, 250, 254, 0.45)" stroke-width="1.4" />
+                    <path d="M 5.8,-8.2 L 5.8,8.2" stroke="rgba(22, 78, 99, 0.3)" stroke-width="1.1" />
+                    <!-- 上層メタン氷の白光リム -->
+                    <circle cx="0" cy="0" r="9.6" fill="none" stroke="rgba(207, 250, 254, 0.65)" stroke-width="0.75" />
+                  </g>
+                )}
+
+                {planet.id === 'neptune' && (
+                  <g id={`planet-texture-${planet.id}`} class="planet-mini-texture" clip-path="url(#planet-texture-clip)" pointer-events="none" transform={`scale(${(planet.scaleConfig.bodySizePx.inner / 10).toFixed(3)})`}>
+                    <!-- 大暗斑（Great Dark Spot：南半球の巨大濃紺嵐） -->
+                    <ellipse cx="-2.6" cy="1.6" rx="2.5" ry="1.6" fill="#020617" fill-opacity="0.82" />
+                    <ellipse cx="-2.6" cy="1.6" rx="1.6" ry="0.9" fill="#172554" fill-opacity="0.95" />
+                    <!-- スクーター雲（Scooter：大暗斑を伴走する純白メタン氷巻雲） -->
+                    <ellipse cx="-0.2" cy="1.1" rx="1.2" ry="0.6" fill="#ffffff" fill-opacity="0.95" />
+                    <circle cx="0.8" cy="1.4" r="0.45" fill="#ffffff" />
+                    <!-- 超音速メタン風の高速白巻雲バンド -->
+                    <path d="M -9.5,-3 Q 0,-3.8 9.5,-3" fill="none" stroke="rgba(255, 255, 255, 0.72)" stroke-width="0.8" stroke-dasharray="3.5 2" />
+                    <path d="M -9,4.2 Q 0,4.8 9,4.2" fill="none" stroke="rgba(255, 255, 255, 0.65)" stroke-width="0.7" stroke-dasharray="2.5 1.5" />
+                    <!-- 南極域の白雲 -->
+                    <ellipse cx="0" cy="8.4" rx="4.5" ry="1.2" fill="rgba(255, 255, 255, 0.55)" />
+                    <!-- 深層大気リム -->
+                    <circle cx="0" cy="0" r="9.6" fill="none" stroke="rgba(147, 197, 253, 0.55)" stroke-width="0.8" />
+                  </g>
+                )}
+
                 {/* ケレス（ceres）の全体ビュー用ミニチュア地表テクスチャ（青紫イジェクタ平原＋オッカトル・クレーターの青白い塩ドーム輝点） */}
                 {planet.id === 'ceres' && (
                   <g id="ceres-mini-texture" class="ceres-mini-texture" pointer-events="none">
@@ -961,6 +1230,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           ← 太陽系全体へ戻る
         </button>
         <span class="ms-switcher-title">🪐 天体・衛星軌道 専用拡大ビュー (太陽・8惑星・5準惑星)</span>
+        <button
+          type="button"
+          id="btn-ms-toggle-probes"
+          class="ms-toggle-probes-btn"
+          title="探査機（ISS、天宮、ジュノー、カッシーニ等）や参照境界線の表示を切り替えます"
+        >
+          🚀 探査機・境界線: <span id="badge-ms-toggle-probes">OFF</span>
+        </button>
       </div>
       <div class="ms-targets-scroll">
         {
@@ -986,7 +1263,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     <div class="hud-date-badge">
       <div class="hud-date-row">
         <span class="hud-badge-tag">SIMULATION DATE</span>
-        <span id="hud-speed-indicator" class="hud-speed-indicator">▶ 10日 / 秒</span>
+        <span id="hud-speed-indicator" class="hud-speed-indicator">▶ 2.4時間 / 秒</span>
       </div>
       <div id="hud-current-date" class="hud-current-date">2026-11-09</div>
       <div id="hud-j2000-days" class="hud-j2000-days">J2000.0 から +9,809.1 日</div>
@@ -1146,13 +1423,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       </button>
 
       <div class="speed-selector" role="group" aria-label="再生スピード選択">
-        <button type="button" class="speed-btn" data-speed="0.1" title="1秒あたり2.4時間（衛星観察向け）">
+        <button type="button" class="speed-btn active" data-speed="0.1" title="1秒あたり2.4時間（衛星観察向け）">
           衛星
         </button>
         <button type="button" class="speed-btn" data-speed="1" title="1秒あたり1日経過">
           1日/s
         </button>
-        <button type="button" class="speed-btn active" data-speed="10" title="1秒あたり10日経過（内惑星・彗星近日点向け）">
+        <button type="button" class="speed-btn" data-speed="10" title="1秒あたり10日経過（内惑星・彗星近日点向け）">
           10日/s
         </button>
         <button type="button" class="speed-btn" data-speed="120" title="1秒あたり約4ヶ月経過（外惑星・木星族彗星向け）">
@@ -1232,7 +1509,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       frameDt: 1 / 60,
       isPlaying: true,
       direction: 1,
-      speedDaysPerSec: 10,
+      speedDaysPerSec: 0.1,
       tiltY: 1.0,
       auRatioBlend: 0.0,
       showMoons: true,
@@ -1240,6 +1517,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       emphasizeRings: true,
       highlightDwarfs: false,
       highlightComets: false,
+      showProbesAndBoundaries: false, // 探査機および参照境界線の表示（デフォルトOFF）
       activeZone: 'inner' as ScaleZone,
       isMoonSystemView: false,
       moonViewPlanetId: 'jupiter',
@@ -1354,6 +1632,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const sunSphereEl = document.getElementById('sun-sphere') as SVGCircleElement | null;
     const sunCoronaOuterEl = document.getElementById('sun-corona-outer') as SVGCircleElement | null;
     const sunCoronaInnerEl = document.getElementById('sun-corona-inner') as SVGCircleElement | null;
+    const sunCoronaRaysEl = document.getElementById('sun-corona-rays') as SVGGElement | null;
+    const sunSurfaceTextureEl = document.getElementById('sun-surface-texture') as SVGGElement | null;
     const sunLabelEl = document.getElementById('sun-label') as SVGTextElement | null;
     const ceresMiniTextureEl = document.getElementById('ceres-mini-texture') as SVGGElement | null;
     const plutoMiniTextureEl = document.getElementById('pluto-mini-texture') as SVGGElement | null;
@@ -1429,6 +1709,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       orbitEl: SVGPathElement | null;
       nodeEl: SVGGElement | null;
       sphereEl: SVGElement | null;
+      textureGroupEl: SVGGElement | null;
       ringBackGroupEl: SVGGElement | null;
       ringFrontGroupEl: SVGGElement | null;
       ringBands: CachedRingBandDom[];
@@ -1448,6 +1729,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       orbitEl: document.getElementById(`orbit-${planet.id}`) as SVGPathElement | null,
       nodeEl: document.getElementById(`node-${planet.id}`) as SVGGElement | null,
       sphereEl: document.getElementById(`sphere-${planet.id}`) as SVGElement | null,
+      textureGroupEl: document.getElementById(`planet-texture-${planet.id}`) as SVGGElement | null,
       ringBackGroupEl: document.getElementById(`ring-back-${planet.id}`) as SVGGElement | null,
       ringFrontGroupEl: document.getElementById(`ring-front-${planet.id}`) as SVGGElement | null,
       ringBands: (planet.ringSystem?.bands || []).map((band, bIdx) => ({
@@ -1698,6 +1980,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         if (sunSphereEl) sunSphereEl.setAttribute('r', sunR.toFixed(2));
         if (sunCoronaInnerEl) sunCoronaInnerEl.setAttribute('r', (sunR * 1.25).toFixed(2));
         if (sunCoronaOuterEl) sunCoronaOuterEl.setAttribute('r', (sunR * 1.62).toFixed(2));
+        if (sunCoronaRaysEl) sunCoronaRaysEl.setAttribute('transform', `scale(${(sunR / 22).toFixed(3)})`);
+        if (sunSurfaceTextureEl) sunSurfaceTextureEl.setAttribute('transform', `scale(${(sunR / 22).toFixed(3)})`);
         if (sunLabelEl) {
           sunLabelEl.setAttribute('y', (sunR + 13).toFixed(1));
           sunLabelEl.style.opacity = simState.activeZone === 'tno' ? '0.6' : '1';
@@ -1818,7 +2102,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     /**
-     * 全22天体（8惑星・5公認準惑星・4準惑星候補・5周期彗星）および全衛星の軌道位置を更新するメイン関数
+     * 全27天体（8惑星・5公認準惑星・9準惑星候補・5周期彗星）および全衛星の軌道位置を更新するメイン関数
      */
     function renderSolarSystem() {
       const d = simState.elapsedDays;
@@ -1957,6 +2241,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             item.sphereEl.setAttribute('ry', (bodyR * 0.82).toFixed(2));
           } else {
             item.sphereEl.setAttribute('r', bodyR.toFixed(2));
+            if (item.textureGroupEl) {
+              item.textureGroupEl.setAttribute('transform', `scale(${(bodyR / 10).toFixed(3)})`);
+            }
             if (p.id === 'ceres' && ceresMiniTextureEl) {
               ceresMiniTextureEl.setAttribute('transform', `scale(${(bodyR / 5.8).toFixed(3)})`);
             }
@@ -2597,14 +2884,15 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
      * 近傍基準圏のカード（詳細パネル用）のHTMLを生成する
      */
     function buildNearZoneCardsHtml(zones: NearSpaceZoneConfig[], distanceLabel: string): string {
-      return zones
+      const isVisible = simState.showProbesAndBoundaries;
+      const cardsHtml = zones
         .map((z) => {
           const probe = isProbeZone(z.id);
           const kindBadge = probe
             ? '<span class="zone-kind-badge is-probe">▲ 探査機が周回</span>'
             : '<span class="zone-kind-badge is-boundary">◌ 参照境界（天体ではありません）</span>';
           return `
-            <div class="moon-card" data-moon-card-id="${z.id}">
+            <div class="moon-card" data-moon-card-id="${z.id}" data-zone-kind="${probe ? 'probe' : 'boundary'}" style="display: ${isVisible ? '' : 'none'};">
               <div class="moon-card-header">
                 <span class="moon-card-name">
                   <span class="moon-dot" style="background:${z.color}"></span>
@@ -2620,6 +2908,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           `;
         })
         .join('');
+
+      return `
+        <div class="probe-boundary-notice" data-probe-notice style="display: ${isVisible ? 'none' : 'flex'};">
+          <span>🚀 探査機・境界線は現在非表示です</span>
+          <button type="button" class="btn-quick-toggle-probes">表示する</button>
+        </div>
+        ${cardsHtml}
+      `;
     }
 
     /**
@@ -2944,6 +3240,19 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       const atmoClipGroupEl = document.createElementNS(svgNs, 'g');
       atmoClipGroupEl.setAttribute('clip-path', 'url(#ms-sphere-clip)');
       msCentralPlanetGroupEl.appendChild(atmoClipGroupEl);
+
+      // 太陽および8惑星の高精細表面テクスチャを拡大ビューの中心球体にも連動配置
+      const srcTextureEl = isSun
+        ? document.getElementById('sun-surface-texture')
+        : document.getElementById(`planet-texture-${targetId}`);
+      if (srcTextureEl) {
+        const clonedTexture = srcTextureEl.cloneNode(true) as SVGGElement;
+        clonedTexture.removeAttribute('id');
+        clonedTexture.removeAttribute('clip-path');
+        const scaleVal = centralR / (isSun ? 22 : 10);
+        clonedTexture.setAttribute('transform', `scale(${scaleVal.toFixed(3)})`);
+        atmoClipGroupEl.appendChild(clonedTexture);
+      }
 
       // 太陽：光球面の差動自転対流バンド＆黒点・白斑活動領域の移動
       if (isSun) {
@@ -4344,6 +4653,11 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         nodeEl.dataset.moonId = m.id;
 
         if (isBoundary) {
+          if (!simState.showProbesAndBoundaries) {
+            orbitEl.style.display = 'none';
+            orbitTagEl.style.display = 'none';
+            nodeEl.style.display = 'none';
+          }
           // 公転しない参照境界：リング上の固定位置にラベルだけを置く（天体マーカーは描かない）
           nodeEl.setAttribute('class', 'ms-boundary-node');
           nodeEl.setAttribute('pointer-events', 'none');
@@ -4463,6 +4777,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             toggleMoonHighlight();
           }
         });
+
+        if (isProbe && !simState.showProbesAndBoundaries) {
+          orbitEl.style.display = 'none';
+          orbitTagEl.style.display = 'none';
+          nodeEl.style.display = 'none';
+        }
 
         msMoonsNodesGroupEl.appendChild(nodeEl);
 
@@ -4604,6 +4924,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
 
       for (const mItem of cache.moons) {
+        if (!simState.showProbesAndBoundaries && (mItem.kind === 'probe' || mItem.kind === 'boundary')) {
+          continue;
+        }
         const isHighlighted = simState.highlightedMoonId === mItem.id;
 
         // 地球の将来計画「月周回ゲートウェイ」は、地球中心ではなく月の極軌道（NRHO）を周回する
@@ -5152,13 +5475,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (detailMoonsSectionEl) detailMoonsSectionEl.style.display = 'block';
       if (detailMoonsHeadingEl) {
         detailMoonsHeadingEl.textContent = simState.isMoonSystemView
-          ? '太陽近傍コロナ・探査機最接近圏 ＆ 収録22天体'
-          : '収録されている全22天体 (タップで移動)';
+          ? '太陽近傍コロナ・探査機最接近圏 ＆ 収録27天体'
+          : '収録されている全27天体 (タップで移動)';
       }
       if (detailMoonBadgeEl) {
         detailMoonBadgeEl.textContent = simState.isMoonSystemView
-          ? '近傍3基準圏 ＋ 全22天体'
-          : '8惑星・9準惑星系・5彗星';
+          ? '近傍3基準圏 ＋ 全27天体'
+          : '8惑星・14準惑星系・5彗星';
       }
       syncOpenMoonViewButton('sun');
       if (detailMoonsListEl) {
@@ -5456,6 +5779,59 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     btnToggleComets?.addEventListener('click', () => {
       simState.showComets = !simState.showComets;
       updateCometsToggleUi();
+    });
+
+    // 探査機および参照境界線の表示/非表示トグル（デフォルトOFF）
+    const btnToggleProbes = document.getElementById('btn-toggle-probes');
+    const badgeToggleProbes = document.getElementById('badge-toggle-probes');
+    const btnMsToggleProbes = document.getElementById('btn-ms-toggle-probes');
+    const badgeMsToggleProbes = document.getElementById('badge-ms-toggle-probes');
+
+    function setProbesAndBoundariesVisibility(show: boolean) {
+      simState.showProbesAndBoundaries = show;
+
+      btnToggleProbes?.classList.toggle('active', show);
+      if (badgeToggleProbes) badgeToggleProbes.textContent = show ? 'ON' : 'OFF';
+
+      btnMsToggleProbes?.classList.toggle('active', show);
+      if (badgeMsToggleProbes) badgeMsToggleProbes.textContent = show ? 'ON' : 'OFF';
+
+      // 拡大ビュー（Moon System View）のSVG要素の表示切替
+      if (activeMoonStageCache) {
+        for (const mItem of activeMoonStageCache.moons) {
+          if (mItem.kind === 'probe' || mItem.kind === 'boundary') {
+            const val = show ? '' : 'none';
+            mItem.orbitEl.style.display = val;
+            mItem.orbitTagEl.style.display = val;
+            mItem.nodeEl.style.display = val;
+          }
+        }
+        renderMoonSystemView();
+      }
+
+      // 詳細パネル内のカードと案内表示の同期
+      document.querySelectorAll<HTMLElement>('.moon-card[data-zone-kind]').forEach((el) => {
+        el.style.display = show ? '' : 'none';
+      });
+      document.querySelectorAll<HTMLElement>('[data-probe-notice]').forEach((el) => {
+        el.style.display = show ? 'none' : 'flex';
+      });
+    }
+
+    btnToggleProbes?.addEventListener('click', () => {
+      setProbesAndBoundariesVisibility(!simState.showProbesAndBoundaries);
+    });
+
+    btnMsToggleProbes?.addEventListener('click', () => {
+      setProbesAndBoundariesVisibility(!simState.showProbesAndBoundaries);
+    });
+
+    // 詳細パネル内の「表示する」クイックトグルボタン
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target && target.closest('.btn-quick-toggle-probes')) {
+        setProbesAndBoundariesVisibility(true);
+      }
     });
 
     // 2D真上視点 ⇔ 3D斜めチルト視点
@@ -6548,6 +6924,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     filter: url(#planet-glow);
   }
 
+  .planet-mini-texture,
+  .sun-mini-texture,
+  .sun-corona-rays {
+    pointer-events: none;
+  }
+
   .selection-ring {
     fill: none;
     stroke-width: 1.6;
@@ -7472,6 +7854,31 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     gap: 0.65rem;
   }
 
+  .ms-toggle-probes-btn {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: rgba(15, 23, 42, 0.65);
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .ms-toggle-probes-btn:hover {
+    border-color: rgba(56, 189, 248, 0.6);
+    color: #e2e8f0;
+  }
+
+  .ms-toggle-probes-btn.active {
+    border-color: rgba(56, 189, 248, 0.85);
+    background: rgba(56, 189, 248, 0.18);
+    color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  }
+
   .ms-exit-btn {
     border: 1px solid rgba(251, 191, 36, 0.5);
     background: rgba(251, 191, 36, 0.14);
@@ -7674,6 +8081,39 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   :global(.zone-kind-badge.is-boundary) {
     background: rgba(148, 163, 184, 0.18);
     color: #cbd5e1;
+  }
+
+  :global(.probe-boundary-notice) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.7rem;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px dashed rgba(148, 163, 184, 0.35);
+    border-radius: 8px;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+
+  :global(.btn-quick-toggle-probes) {
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #38bdf8;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.18rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+  }
+
+  :global(.btn-quick-toggle-probes:hover) {
+    background: rgba(56, 189, 248, 0.32);
+    border-color: #38bdf8;
+    color: #ffffff;
   }
 
   :global(.ms-moon-orbit.is-highlighted) {
