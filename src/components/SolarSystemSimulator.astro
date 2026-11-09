@@ -2525,6 +2525,50 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             'NASA/ESA/ASIの土星探査機カッシーニが13年間の周回探査（タイタンへのホイヘンス着陸、エンケラドゥスの熱水プルーム発見等）の最終章「グランド・フィナーレ」で22回通過した、土星雲頂と最内周D環のわずか約2,000kmの隙間をくぐる超近接軌道。',
         },
       ],
+      earth: [
+        {
+          id: 'earth_tiangong_orbit',
+          nameJa: '中国宇宙ステーション「天宮」 (Tiangong)',
+          nameEn: 'Tiangong Space Station',
+          distanceKm: 6761,
+          ratioLabel: '1.06 R⊕ (高度 390km)',
+          orbitalPeriodDays: 0.0639,
+          initialAngleDeg: 210,
+          sizePx: 3.3,
+          color: '#f59e0b',
+          badgeLabel: '高度 390km (周期 92分)',
+          description:
+            '中国が独自に建設・運用する有人宇宙ステーション（天和コアモジュール、問天・夢天実験棟）。高度約390km、軌道傾斜角41.5度で地球を約92分で周回し、多彩な宇宙科学実験と長期滞在を実施。',
+        },
+        {
+          id: 'earth_iss_orbit',
+          nameJa: '国際宇宙ステーション (ISS)',
+          nameEn: 'International Space Station',
+          distanceKm: 6778,
+          ratioLabel: '1.06 R⊕ (高度 408km)',
+          orbitalPeriodDays: 0.0644,
+          initialAngleDeg: 45,
+          sizePx: 3.5,
+          color: '#38bdf8',
+          badgeLabel: '高度 408km (周期 93分)',
+          description:
+            '日米欧加露の国際協力で運用される人類最大の宇宙居住拠点。地上約408km（軌道傾斜角51.6度）を秒速約7.7km、約93分で周回しながら「きぼう」日本実験棟など先端科学実験と国際共同探査を推進。',
+        },
+        {
+          id: 'earth_lunar_gateway_orbit',
+          nameJa: '月周回有人拠点「ゲートウェイ」(Lunar Gateway / NRHO)',
+          nameEn: 'Lunar Gateway Polar NRHO',
+          distanceKm: 384400,
+          ratioLabel: '月極軌道 NRHO (周期 7.0日)',
+          orbitalPeriodDays: 7.0,
+          initialAngleDeg: 135,
+          sizePx: 3.4,
+          color: '#c084fc',
+          badgeLabel: '月極軌道 NRHO 周期 7日',
+          description:
+            'NASA主導・アルテミス計画で月近傍に建設される次世代有人宇宙ステーション。月の南北極域を縦断する近直線ハロー軌道（NRHO：近月点1,500km〜遠月点70,000km）を約7日周期で周回し、月面着陸探査や将来の有人火星探査の補給・中継ハブとなります。',
+        },
+      ],
     };
 
     /**
@@ -2540,6 +2584,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       'ceres_dawn_lamo',
       'jupiter_juno_orbit',
       'saturn_cassini_orbit',
+      'earth_tiangong_orbit',
+      'earth_iss_orbit',
+      'earth_lunar_gateway_orbit',
     ]);
 
     function isProbeZone(id: string): boolean {
@@ -2607,7 +2654,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       sun: '✦ 専用アニメーション: コロナ光条回転・プロミネンス脈動・太陽風プラズマ粒子放出・光球対流',
       mercury: '✦ 専用アニメーション: 太陽風磁気バウショック・ナトリウム希薄外気圏の粒子流出',
       venus: '✦ 専用アニメーション: 濃硫酸雲スーパーローテーション (4日周期・V字弓状雲流動)',
-      earth: '✦ 専用アニメーション: 偏西風/貿易風の白雲移動・台風サイクロン渦・極域オーロラ発光',
+      earth: '✦ 専用アニメーション: 偏西風/貿易風の白雲移動・オーロラ発光 ＋ ISS・天宮の低軌道周回 ＋ 月極軌道ゲートウェイ周回',
       mars: '✦ 専用アニメーション: 砂塵嵐（ダストストーム）渦気流・高層水氷雲・極冠の輝き',
       ceres:
         '✦ 専用アニメーション: オッカトル青白塩ドーム・地下塩水（ブライン）亀裂湧出・アフナ山氷火山＆水蒸気プルーム噴出',
@@ -4227,7 +4274,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       const moonsCache: MoonSystemStageCache['moons'] = [];
 
       orbitItems.forEach((m, idx) => {
-        const autoRadiusPx =
+        let autoRadiusPx =
           totalItems === 1
             ? 305
             : minOrbitPx + (idx / Math.max(1, totalItems - 1)) * (maxOrbitPx - minOrbitPx);
@@ -4238,6 +4285,25 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             (Math.pow(m.distanceKm, 0.58) - Math.pow(minDistKm, 0.58)) /
             Math.max(0.001, Math.pow(maxDistKm, 0.58) - Math.pow(minDistKm, 0.58));
           realRadiusPx = minOrbitPx + norm * (maxOrbitPx - minOrbitPx);
+        }
+
+        // 地球拡大ビューの場合の視認性最適化：
+        // 天宮 (390km) と ISS (408km) は低軌道で実距離差が17kmしかないため、
+        // 地球本体 (半径52px) の外側に重ならず明確に分離して視認できるよう専用配置
+        if (targetId === 'earth') {
+          if (m.id === 'earth_tiangong_orbit') {
+            autoRadiusPx = 92;
+            realRadiusPx = 88;
+          } else if (m.id === 'earth_iss_orbit') {
+            autoRadiusPx = 138;
+            realRadiusPx = 132;
+          } else if (m.id === 'moon') {
+            autoRadiusPx = 435;
+            realRadiusPx = 445;
+          } else if (m.id === 'earth_lunar_gateway_orbit') {
+            autoRadiusPx = 435;
+            realRadiusPx = 445;
+          }
         }
 
         const isBoundary = m.kind === 'boundary';
@@ -4253,7 +4319,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         orbitEl.setAttribute('cx', '0');
         orbitEl.setAttribute('cy', '0');
         orbitEl.setAttribute('stroke', m.color);
-        orbitEl.setAttribute('class', isBoundary ? 'ms-moon-orbit ms-boundary-ring' : 'ms-moon-orbit');
+        orbitEl.setAttribute(
+          'class',
+          m.id === 'earth_lunar_gateway_orbit'
+            ? 'ms-moon-orbit ms-gateway-nrho-orbit'
+            : isBoundary
+              ? 'ms-moon-orbit ms-boundary-ring'
+              : 'ms-moon-orbit'
+        );
         msOrbitsGroupEl.appendChild(orbitEl);
 
         const orbitTagEl = document.createElementNS(svgNs, 'text');
@@ -4261,7 +4334,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         orbitTagEl.setAttribute('text-anchor', 'middle');
         orbitTagEl.setAttribute('fill', m.color);
         orbitTagEl.setAttribute('class', 'ms-orbit-tag');
-        orbitTagEl.textContent = `${m.tagPrefix}: ${m.distanceKm.toLocaleString()} km (${m.ratioLabel})`;
+        orbitTagEl.textContent =
+          m.id === 'earth_lunar_gateway_orbit'
+            ? '月極軌道 NRHO (周期 7.0日)'
+            : `${m.tagPrefix}: ${m.distanceKm.toLocaleString()} km (${m.ratioLabel})`;
         msOrbitsGroupEl.appendChild(orbitTagEl);
 
         const nodeEl = document.createElementNS(svgNs, 'g');
@@ -4509,11 +4585,64 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       const sinPlane = Math.sin(moonPlaneTiltRad);
       const uranusAspect = lerp(1.0, p?.ringSystem?.aspectRatio ?? 0.36, view3dFactor);
 
+      // 地球拡大ビューの場合：月（moon）の現在座標を追跡（ゲートウェイのNRHO極軌道と連動配置）
+      let earthMoonCoords: { mx: number; my: number } | null = null;
+      if (cache.targetId === 'earth') {
+        const moonItem = cache.moons.find((item) => item.id === 'moon');
+        if (moonItem) {
+          const mRx = lerp(moonItem.autoRadiusPx, moonItem.realRadiusPx, auBlend);
+          const mRy = mRx * tiltY;
+          const moonAngleDeg = normalizeDegrees(
+            moonItem.initialAngleDeg + (360 / moonItem.orbitalPeriodDays) * simState.msMoonTimeDays
+          );
+          const moonRad = -moonAngleDeg * DEG_TO_RAD;
+          earthMoonCoords = {
+            mx: Math.cos(moonRad) * mRx,
+            my: Math.sin(moonRad) * mRy,
+          };
+        }
+      }
+
       for (const mItem of cache.moons) {
-        const mRx = lerp(mItem.autoRadiusPx, mItem.realRadiusPx, auBlend);
-        const mRy = isUranus ? mRx * uranusAspect : mRx * tiltY;
         const isHighlighted = simState.highlightedMoonId === mItem.id;
 
+        // 地球の将来計画「月周回ゲートウェイ」は、地球中心ではなく月の極軌道（NRHO）を周回する
+        if (mItem.id === 'earth_lunar_gateway_orbit' && earthMoonCoords) {
+          const nrhoRx = 16 * (0.8 + 0.2 * tiltY);
+          const nrhoRy = 36;
+          mItem.orbitEl.setAttribute('cx', earthMoonCoords.mx.toFixed(1));
+          mItem.orbitEl.setAttribute('cy', earthMoonCoords.my.toFixed(1));
+          mItem.orbitEl.setAttribute('rx', nrhoRx.toFixed(1));
+          mItem.orbitEl.setAttribute('ry', nrhoRy.toFixed(1));
+          mItem.orbitEl.classList.toggle('is-highlighted', isHighlighted);
+          mItem.orbitEl.removeAttribute('transform');
+
+          mItem.orbitTagEl.setAttribute('x', earthMoonCoords.mx.toFixed(1));
+          mItem.orbitTagEl.setAttribute('y', (earthMoonCoords.my - (nrhoRy + 6)).toFixed(1));
+
+          // 月極軌道（NRHO）上の公転角（周期7日）
+          const gwAngleDeg = normalizeDegrees(
+            mItem.initialAngleDeg + (360 / mItem.orbitalPeriodDays) * simState.msMoonTimeDays
+          );
+          const gwRad = -gwAngleDeg * DEG_TO_RAD;
+          const gwLocalX = Math.cos(gwRad) * nrhoRx;
+          const gwLocalY = Math.sin(gwRad) * nrhoRy;
+          const gwx = earthMoonCoords.mx + gwLocalX;
+          const gwy = earthMoonCoords.my + gwLocalY;
+
+          mItem.nodeEl.setAttribute(
+            'transform',
+            `translate(${gwx.toFixed(2)}, ${gwy.toFixed(2)})`
+          );
+          mItem.nodeEl.classList.toggle('is-highlighted', isHighlighted);
+          continue;
+        }
+
+        const mRx = lerp(mItem.autoRadiusPx, mItem.realRadiusPx, auBlend);
+        const mRy = isUranus ? mRx * uranusAspect : mRx * tiltY;
+
+        mItem.orbitEl.setAttribute('cx', '0');
+        mItem.orbitEl.setAttribute('cy', '0');
         mItem.orbitEl.setAttribute('rx', mRx.toFixed(1));
         mItem.orbitEl.setAttribute('ry', mRy.toFixed(1));
         mItem.orbitEl.classList.toggle('is-highlighted', isHighlighted);
@@ -4533,13 +4662,22 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         mItem.orbitTagEl.setAttribute('x', tagX.toFixed(1));
         mItem.orbitTagEl.setAttribute('y', (tagY - 5).toFixed(1));
 
+        // 低軌道宇宙ステーション（天宮・ISS）は実周期約92〜93分と極めて高速なため、
+        // 描画フレームレートでストロボ・点滅とならないよう、滑らかに周回が追える角速度にスケーリング
+        let animPeriodDays = mItem.orbitalPeriodDays;
+        if (mItem.id === 'earth_tiangong_orbit') {
+          animPeriodDays = 0.52;
+        } else if (mItem.id === 'earth_iss_orbit') {
+          animPeriodDays = 0.58;
+        }
+
         // 衛星・探査機の現在公転角（負の公転周期＝逆行公転にも対応）
         // 参照境界は公転しないため、初期角度の固定位置にラベルを置く
         const moonAngleDeg =
           mItem.kind === 'boundary'
             ? mItem.initialAngleDeg
             : normalizeDegrees(
-                mItem.initialAngleDeg + (360 / mItem.orbitalPeriodDays) * simState.msMoonTimeDays
+                mItem.initialAngleDeg + (360 / animPeriodDays) * simState.msMoonTimeDays
               );
         const moonRad = -moonAngleDeg * DEG_TO_RAD;
         const localMx = Math.cos(moonRad) * mRx;
@@ -7504,6 +7642,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     stroke-width: 1.2px;
     stroke-dasharray: 2 5;
     stroke-opacity: 0.5;
+  }
+
+  /* 月極軌道（ゲートウェイ NRHO：Near Rectilinear Halo Orbit） */
+  :global(.ms-moon-orbit.ms-gateway-nrho-orbit) {
+    stroke-width: 1.35px;
+    stroke-dasharray: 3 3;
+    stroke-opacity: 0.85;
   }
 
   :global(.ms-boundary-title) {
