@@ -1,0 +1,19 @@
+# ビルド出力
+dist/
+.output/
+
+# Astro生成型・キャッシュ
+.astro/
+
+# 依存パッケージ
+node_modules/
+
+# 環境変数・ローカル設定
+.env
+.env.*
+!.env.example
+
+# OS・エディタ生成ファイル
+.DS_Store
+Thumbs.db
+*.log
