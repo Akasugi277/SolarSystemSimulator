@@ -2493,6 +2493,38 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             '小惑星帯（メインベルト）全質量の約3分の1を占める最大天体ケレスの重力影響圏。ドーン探査機の精密捜索により自然衛星が0個であることが確認されています。',
         },
       ],
+      jupiter: [
+        {
+          id: 'jupiter_juno_orbit',
+          nameJa: '探査機ジュノー (Juno) ペリジョーブ極軌道探査圏',
+          nameEn: 'Juno Spacecraft Polar Perijove Orbit',
+          distanceKm: 75700,
+          ratioLabel: '1.06 Rₚ (雲頂高度 4,200km)',
+          orbitalPeriodDays: 38.0,
+          initialAngleDeg: 62,
+          sizePx: 3.5,
+          color: '#38bdf8',
+          badgeLabel: '近木点高度 4,200km',
+          description:
+            'NASAの木星探査機ジュノーが強力な放射線帯の内側をくぐり抜けて通過する極軌道最接近（ペリジョーブ）領域。重力場・磁場の精密測定により希釈コア（ファジーコア）や極域の多角形サイクロン群を解明し、イオ・エウロパ・ガニメデへの接近観測も行いました。',
+        },
+      ],
+      saturn: [
+        {
+          id: 'saturn_cassini_orbit',
+          nameJa: '探査機カッシーニ (Cassini) グランド・フィナーレ極軌道',
+          nameEn: 'Cassini Grand Finale Proximal Orbit',
+          distanceKm: 63300,
+          ratioLabel: '1.05 Rₚ (雲頂とD環の間隙)',
+          orbitalPeriodDays: 6.47,
+          initialAngleDeg: 148,
+          sizePx: 3.5,
+          color: '#38bdf8',
+          badgeLabel: '環内通過 周期 6.5日',
+          description:
+            'NASA/ESA/ASIの土星探査機カッシーニが13年間の周回探査（タイタンへのホイヘンス着陸、エンケラドゥスの熱水プルーム発見等）の最終章「グランド・フィナーレ」で22回通過した、土星雲頂と最内周D環のわずか約2,000kmの隙間をくぐる超近接軌道。',
+        },
+      ],
     };
 
     /**
@@ -2506,6 +2538,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       'mercury_bepicolombo_orbit',
       'venus_akatsuki_orbit',
       'ceres_dawn_lamo',
+      'jupiter_juno_orbit',
+      'saturn_cassini_orbit',
     ]);
 
     function isProbeZone(id: string): boolean {
@@ -2577,8 +2611,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       mars: '✦ 専用アニメーション: 砂塵嵐（ダストストーム）渦気流・高層水氷雲・極冠の輝き',
       ceres:
         '✦ 専用アニメーション: オッカトル青白塩ドーム・地下塩水（ブライン）亀裂湧出・アフナ山氷火山＆水蒸気プルーム噴出',
-      jupiter: '✦ 専用アニメーション: 東西交互ジェット気流・大赤斑の渦回転 ＋ 3重環ダスト粒子公転',
-      saturn: '✦ 専用アニメーション: 北極六角形（ヘキサゴン）渦・赤道気流 ＋ 68個の環氷粒子ケプラー公転',
+      jupiter: '✦ 専用アニメーション: 東西交互ジェット気流・大赤斑の渦回転 ＋ 3重環ダスト粒子公転 ＋ 探査機ジュノー周回',
+      saturn: '✦ 専用アニメーション: 北極六角形（ヘキサゴン）渦・赤道気流 ＋ 68個の環氷粒子公転 ＋ 探査機カッシーニ周回',
       uranus: '✦ 専用アニメーション: 横倒しメタン雲バンド流動・極フード脈動 ＋ 縦向き3重環の粒子公転',
       neptune: '✦ 専用アニメーション: 超音速メタン風・大暗斑・スクーター伴雲 ＋ アダムズ環アーク粒子公転',
       pluto:
@@ -4099,6 +4133,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
 
       // 中心天体ラベル＆専用アニメーション解説タグ
+      const extraNearCount = (NO_MOON_NEAR_ZONES[targetId] || []).length;
       const centralLabelY = planet?.hasRings ? centralR + 50 : centralR + 24;
       const centralTitleEl = document.createElementNS(svgNs, 'text');
       centralTitleEl.setAttribute('x', '0');
@@ -4117,7 +4152,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       centralSubEl.textContent = isSun
         ? `直径 ${bodyDiameterKm.toLocaleString()} km (地球の109倍) / 内部4層断面・太陽コロナ圏`
         : hasNaturalMoons
-          ? `直径 ${bodyDiameterKm.toLocaleString()} km / 主要衛星 ${planet!.moons.length}個`
+          ? `直径 ${bodyDiameterKm.toLocaleString()} km / 主要衛星 ${planet!.moons.length}個${
+              extraNearCount > 0 ? ` ＋ 探査機軌道 ${extraNearCount}本` : ''
+            }`
           : `直径 ${bodyDiameterKm.toLocaleString()} km / 自然衛星 0個（内部断面・近傍重力圏表示）`;
       msCentralPlanetGroupEl.appendChild(centralSubEl);
 
@@ -4132,12 +4169,32 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         msCentralPlanetGroupEl.appendChild(animTagEl);
       }
 
-      // 3. 各衛星の拡大軌道（または太陽・水星・金星・ケレスの近傍基準リング）とノードを構築
+      // 3. 各衛星の拡大軌道・探査機周回軌道・近傍基準リングとノードを構築
       //    - 自然衛星: 球体が公転
-      //    - 探査機が周回した軌道: 小さな正四面体が公転
+      //    - 探査機が周回した軌道: 小さな正四面体が公転（自然衛星を持つ木星・土星等でも内周に併用表示）
       //    - ロッシュ限界・ヒル球などの参照境界: 公転しない静止リング＋ラベル（衛星と誤解されないようにする）
       type OrbitItemKind = 'moon' | 'probe' | 'boundary';
-      const orbitItems = hasNaturalMoons
+      const nearZoneOrbitItems = (NO_MOON_NEAR_ZONES[targetId] || []).map((z) => {
+        const probe = isProbeZone(z.id);
+        return {
+          kind: (probe ? 'probe' : 'boundary') as OrbitItemKind,
+          id: z.id,
+          nameJa: z.nameJa,
+          nameEn: z.nameEn,
+          distanceKm: z.distanceKm,
+          ratioLabel: z.ratioLabel,
+          orbitalPeriodDays: z.orbitalPeriodDays,
+          initialAngleDeg: z.initialAngleDeg,
+          sizePx: z.sizePx,
+          color: z.color,
+          metaText: probe
+            ? `探査機の周回軌道 半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel}) ・ ${z.badgeLabel}`
+            : `参照境界（公転しません） 半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel})`,
+          tagPrefix: probe ? `${z.nameJa}` : `${z.nameJa}【境界】`,
+        };
+      });
+
+      const naturalMoonOrbitItems = hasNaturalMoons
         ? planet!.moons.map((m) => ({
             kind: 'moon' as OrbitItemKind,
             id: m.id,
@@ -4154,25 +4211,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             }`,
             tagPrefix: `${m.nameJa}軌道`,
           }))
-        : (NO_MOON_NEAR_ZONES[targetId] || []).map((z) => {
-            const probe = isProbeZone(z.id);
-            return {
-              kind: (probe ? 'probe' : 'boundary') as OrbitItemKind,
-              id: z.id,
-              nameJa: z.nameJa,
-              nameEn: z.nameEn,
-              distanceKm: z.distanceKm,
-              ratioLabel: z.ratioLabel,
-              orbitalPeriodDays: z.orbitalPeriodDays,
-              initialAngleDeg: z.initialAngleDeg,
-              sizePx: z.sizePx,
-              color: z.color,
-              metaText: probe
-                ? `探査機の周回軌道 半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel}) ・ ${z.badgeLabel}`
-                : `参照境界（公転しません） 半径 ${z.distanceKm.toLocaleString()} km (${z.ratioLabel})`,
-              tagPrefix: probe ? `${z.nameJa}` : `${z.nameJa}【境界】`,
-            };
-          });
+        : [];
+
+      // 中心からの距離（distanceKm）の昇順に並べて内周から外周へ配置する
+      const orbitItems = [...nearZoneOrbitItems, ...naturalMoonOrbitItems].sort(
+        (a, b) => a.distanceKm - b.distanceKm
+      );
 
       const totalItems = orbitItems.length;
       const minOrbitPx = planet?.hasRings ? 195 : hasNaturalMoons ? 175 : 210;
@@ -5128,7 +5172,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (detailMoonsHeadingEl) {
         detailMoonsHeadingEl.textContent =
           planet.moons.length > 0
-            ? '実装されている主要衛星'
+            ? nearZones.length > 0
+              ? '実装されている主要衛星 ＆ 探査機軌道'
+              : '実装されている主要衛星'
             : nearZones.length > 0
               ? '近傍重力圏・探査軌道（自然衛星 0個）'
               : '実装されている主要衛星';
@@ -5136,7 +5182,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (detailMoonBadgeEl) {
         detailMoonBadgeEl.textContent =
           planet.moons.length > 0
-            ? `${planet.moons.length}個`
+            ? nearZones.length > 0
+              ? `衛星${planet.moons.length}個 ＋ 探査機${nearZones.length}機`
+              : `${planet.moons.length}個`
             : nearZones.length > 0
               ? '自然衛星 0個 / 3基準圏'
               : '0個';
@@ -5157,7 +5205,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
           bindMoonCardHighlight(detailMoonsListEl);
         } else {
-          detailMoonsListEl.innerHTML = planet.moons
+          const nearZonesHtml = nearZones.length > 0 ? buildNearZoneCardsHtml(nearZones, '基準半径') : '';
+          const moonsHtml = planet.moons
             .map((m) => {
               const isRetro = m.orbitalPeriodDays < 0;
               const absPeriod = Math.abs(m.orbitalPeriodDays);
@@ -5180,6 +5229,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               `;
             })
             .join('');
+
+          detailMoonsListEl.innerHTML = nearZonesHtml + moonsHtml;
 
           bindMoonCardHighlight(detailMoonsListEl);
         }
