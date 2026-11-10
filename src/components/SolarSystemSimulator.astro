@@ -456,6 +456,15 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             <span id="badge-toggle-inclination-guides" class="switch-state">ON</span>
           </button>
         </div>
+        <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">高度ポールの表示対象</div>
+        <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="高度ポールの表示対象">
+          <button type="button" id="btn-inc-mode-selected" class="toggle-btn active" title="選択した天体のみ、または代表天体のみスマート表示して画面の重なりを防ぎます（推奨）">
+            選択天体のみ (推奨)
+          </button>
+          <button type="button" id="btn-inc-mode-all" class="toggle-btn" title="全天体の高度ポールを一度に表示します">
+            全天体一括
+          </button>
+        </div>
         <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">軌道傾斜角の視覚的強調倍率</div>
         <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="軌道傾斜の強調倍率">
           <button type="button" id="btn-inc-boost-1x" class="toggle-btn" title="実際の天文学通りの傾斜角で表示">
@@ -1320,19 +1329,31 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       </div>
     </div>
 
-    <!-- 左上フローティング：現在の早見日時＆3段階縮尺ステータス表示 -->
-    <div class="hud-date-badge">
+    <!-- 左上フローティング：現在の早見日時＆3段階縮尺ステータス表示（開閉アコーディオン対応） -->
+    <div id="hud-date-badge" class="hud-date-badge" role="region" aria-label="シミュレーションステータスHUD">
       <div class="hud-date-row">
         <span class="hud-badge-tag">SIMULATION DATE</span>
         <span id="hud-speed-indicator" class="hud-speed-indicator">▶ 2.4時間 / 秒</span>
+        <button
+          type="button"
+          id="btn-toggle-hud"
+          class="hud-toggle-btn"
+          aria-expanded="true"
+          aria-controls="hud-collapsible-content"
+          title="HUDの詳細情報を折りたたむ / 展開する"
+        >
+          <span class="hud-toggle-icon">▲</span>
+        </button>
       </div>
       <div id="hud-current-date" class="hud-current-date">2026-11-09</div>
-      <div id="hud-j2000-days" class="hud-j2000-days">J2000.0 から +9,809.1 日</div>
-      <div class="hud-zone-status">
-        <div class="hud-zone-title">
-          縮尺: <strong id="hud-zone-name">1. 内惑星縮尺</strong>
+      <div id="hud-collapsible-content" class="hud-collapsible-content">
+        <div id="hud-j2000-days" class="hud-j2000-days">J2000.0 から +9,809.1 日</div>
+        <div class="hud-zone-status">
+          <div class="hud-zone-title">
+            縮尺: <strong id="hud-zone-name">1. 内惑星縮尺</strong>
+          </div>
+          <div id="hud-zone-range" class="hud-zone-range">0.34 AU 〜 5.2 AU 領域 (軌道間隔自動調整)</div>
         </div>
-        <div id="hud-zone-range" class="hud-zone-range">0.34 AU 〜 5.2 AU 領域 (軌道間隔自動調整)</div>
       </div>
     </div>
 
@@ -1584,6 +1605,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       highlightComets: false,
       showProbesAndBoundaries: false, // 探査機および参照境界線の表示（デフォルトOFF）
       showInclinationGuides: true, // 3D軌道傾斜・高度ポールの表示（デフォルトON）
+      incGuideMode: 'selected' as 'selected' | 'all', // 高度ポールの表示対象（'selected': 選択天体のみ推奨, 'all': 全天体一括）
       inclinationBoost: 1.5, // 軌道傾斜の視覚的強調倍率（1.0x / 1.5x / 2.0x、デフォルト1.5x推奨）
       activeZone: 'inner' as ScaleZone,
       isMoonSystemView: false,
@@ -1707,6 +1729,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const plutoMiniTextureEl = document.getElementById('pluto-mini-texture') as SVGGElement | null;
 
     // HUD・UI要素
+    const hudDateBadgeEl = document.getElementById('hud-date-badge');
+    const btnToggleHudEl = document.getElementById('btn-toggle-hud');
+    const hudCollapsibleEl = document.getElementById('hud-collapsible-content');
     const hudDateEl = document.getElementById('hud-current-date');
     const hudJ2000El = document.getElementById('hud-j2000-days');
     const hudSpeedEl = document.getElementById('hud-speed-indicator');
@@ -1723,6 +1748,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const btnCloseDrawer = document.getElementById('btn-close-drawer');
     const btnToggleInclinationGuides = document.getElementById('btn-toggle-inclination-guides');
     const badgeToggleInclinationGuides = document.getElementById('badge-toggle-inclination-guides');
+    const btnIncModeSelected = document.getElementById('btn-inc-mode-selected');
+    const btnIncModeAll = document.getElementById('btn-inc-mode-all');
     const btnIncBoost1x = document.getElementById('btn-inc-boost-1x');
     const btnIncBoost15x = document.getElementById('btn-inc-boost-15x');
     const btnIncBoost2x = document.getElementById('btn-inc-boost-2x');
@@ -2478,19 +2505,46 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
         // 3D高度ドロップライン（垂直ステム線）と黄道面フットプリントの更新
         const view3dFactor = Math.max(0, Math.min(1, (1.0 - tiltY) / (1.0 - 0.44)));
-        const showIncGuide =
+        const isGuideActive =
           simState.showInclinationGuides &&
           !simState.isMoonSystemView &&
           effectiveOpacity >= 0.05 &&
           view3dFactor > 0.08 &&
           Math.abs(posPx.y - posPx.eclipticY) > 1.2;
 
+        let showIncGuide = false;
+        let isIncMuted = false;
+
+        if (isGuideActive) {
+          if (simState.incGuideMode === 'all') {
+            // 全天体一括モード
+            showIncGuide = true;
+            isIncMuted = !isSelected;
+          } else {
+            // 選択天体のみ（推奨・スマート表示モード）
+            if (simState.selectedBodyId !== 'overview') {
+              // 特定天体を選択中は、その天体のみを鮮明に強調
+              showIncGuide = isSelected;
+              isIncMuted = false;
+            } else {
+              // 縮尺全体（未選択）時は、軌道傾斜が顕著な天体（>= 7°）かつ現在縮尺で主要な天体のみ控えめに表示
+              const isMajorInclination = (p.orbit.inclinationDeg ?? 0) >= 7.0;
+              showIncGuide = isMajorInclination && effectiveOpacity >= 0.55;
+              isIncMuted = true;
+            }
+          }
+        }
+
         if (item.incGuideGroupEl) {
           if (showIncGuide) {
             item.incGuideGroupEl.style.display = 'block';
             const isAbove = posPx.zPx > 0;
             const stemColor = isAbove ? '#38bdf8' : '#fb923c';
-            const stemAlpha = isSelected ? 0.95 : lerp(0.35, 0.75, view3dFactor);
+            const stemAlpha = isSelected
+              ? 0.95
+              : isIncMuted
+                ? Math.min(0.35, 0.3 * view3dFactor)
+                : lerp(0.35, 0.75, view3dFactor);
 
             if (item.incStemEl) {
               item.incStemEl.setAttribute('x1', posPx.x.toFixed(1));
@@ -2499,8 +2553,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               item.incStemEl.setAttribute('y2', posPx.eclipticY.toFixed(1));
               item.incStemEl.setAttribute('stroke', stemColor);
               item.incStemEl.setAttribute('stroke-opacity', stemAlpha.toFixed(2));
-              item.incStemEl.setAttribute('stroke-width', isSelected ? '1.5' : '1.0');
-              item.incStemEl.setAttribute('stroke-dasharray', isSelected ? 'none' : '3 2');
+              item.incStemEl.setAttribute('stroke-width', isSelected ? '1.8' : isIncMuted ? '0.75' : '1.0');
+              item.incStemEl.setAttribute('stroke-dasharray', isSelected ? 'none' : isIncMuted ? '2 2' : '3 2');
             }
 
             if (item.incFootprintEl) {
@@ -2510,7 +2564,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               item.incFootprintEl.setAttribute('rx', fpRx.toFixed(1));
               item.incFootprintEl.setAttribute('ry', (fpRx * tiltY).toFixed(1));
               item.incFootprintEl.setAttribute('fill', stemColor);
-              item.incFootprintEl.setAttribute('fill-opacity', (stemAlpha * 0.4).toFixed(2));
+              item.incFootprintEl.setAttribute('fill-opacity', (stemAlpha * (isSelected ? 0.45 : 0.25)).toFixed(2));
               item.incFootprintEl.setAttribute('stroke', stemColor);
               item.incFootprintEl.setAttribute('stroke-opacity', stemAlpha.toFixed(2));
             }
@@ -6059,6 +6113,15 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
     });
 
+    // 高度ポールの表示対象モード切替（'selected': 選択天体のみ推奨, 'all': 全天体一括）
+    function setIncGuideMode(mode: 'selected' | 'all') {
+      simState.incGuideMode = mode;
+      btnIncModeSelected?.classList.toggle('active', mode === 'selected');
+      btnIncModeAll?.classList.toggle('active', mode === 'all');
+    }
+    btnIncModeSelected?.addEventListener('click', () => setIncGuideMode('selected'));
+    btnIncModeAll?.addEventListener('click', () => setIncGuideMode('all'));
+
     // 軌道傾斜強調倍率の切り替え（1.0x / 1.5x / 2.0x）
     function setInclinationBoost(boost: number) {
       simState.inclinationBoost = boost;
@@ -6069,6 +6132,32 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     btnIncBoost1x?.addEventListener('click', () => setInclinationBoost(1.0));
     btnIncBoost15x?.addEventListener('click', () => setInclinationBoost(1.5));
     btnIncBoost2x?.addEventListener('click', () => setInclinationBoost(2.0));
+
+    // 左上HUDの折りたたみ・展開制御（モバイルではデフォルト折りたたみ）
+    let isHudCollapsed = typeof window !== 'undefined' && window.innerWidth <= 768;
+    function updateHudCollapseUi() {
+      if (hudDateBadgeEl) {
+        hudDateBadgeEl.classList.toggle('is-collapsed', isHudCollapsed);
+      }
+      if (btnToggleHudEl) {
+        btnToggleHudEl.setAttribute('aria-expanded', String(!isHudCollapsed));
+        const icon = btnToggleHudEl.querySelector('.hud-toggle-icon');
+        if (icon) icon.textContent = isHudCollapsed ? '▼' : '▲';
+      }
+    }
+    btnToggleHudEl?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isHudCollapsed = !isHudCollapsed;
+      updateHudCollapseUi();
+    });
+    // HUDのヘッダー行をクリックしてもトグル可能
+    hudDateBadgeEl?.addEventListener('click', () => {
+      if (isHudCollapsed) {
+        isHudCollapsed = false;
+        updateHudCollapseUi();
+      }
+    });
+    updateHudCollapseUi();
 
     // 探査機および参照境界線の表示/非表示トグル（デフォルトOFF）
     const btnToggleProbes = document.getElementById('btn-toggle-probes');
@@ -6942,20 +7031,29 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     justify-content: flex-start;
     gap: 0.25rem;
     padding-top: 0.24rem;
-    padding-bottom: 0.15rem;
+    padding-bottom: 0.2rem;
     border-top: 1px solid rgba(148, 163, 184, 0.1);
     overflow-x: auto;
+    overflow-y: hidden;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
   }
 
   .celestial-nav::-webkit-scrollbar {
     height: 4px;
+    background: transparent;
+  }
+  .celestial-nav::-webkit-scrollbar-track {
+    background: transparent !important;
   }
   .celestial-nav::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.3);
-    border-radius: 4px;
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+  }
+  .celestial-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.6);
   }
 
   .nav-divider {
@@ -7411,32 +7509,35 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     backdrop-filter: blur(12px);
     border: 1px solid var(--border-subtle);
     border-radius: 12px;
-    padding: 0.55rem 0.85rem;
-    pointer-events: none;
-    max-width: 360px;
+    padding: 0.5rem 0.8rem;
+    pointer-events: auto;
+    max-width: 340px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s ease;
+    user-select: none;
   }
 
   .hud-date-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
-    margin-bottom: 0.1rem;
+    gap: 0.4rem;
+    margin-bottom: 0.15rem;
   }
 
   .hud-badge-tag {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--accent-cyan);
   }
 
   .hud-speed-indicator {
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     font-family: var(--font-mono);
     color: #34d399;
     background: rgba(16, 185, 129, 0.14);
-    padding: 0.06rem 0.42rem;
+    padding: 0.06rem 0.38rem;
     border-radius: 999px;
   }
 
@@ -7445,12 +7546,56 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     background: rgba(251, 191, 36, 0.15);
   }
 
+  .hud-toggle-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.65rem;
+    line-height: 1;
+    border-radius: 4px;
+    transition: color 0.18s ease, background 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hud-toggle-btn:hover {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+  }
+
   .hud-current-date {
     font-family: var(--font-mono);
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: 0.03em;
     color: #ffffff;
+    line-height: 1.15;
+  }
+
+  .hud-collapsible-content {
+    overflow: hidden;
+    max-height: 120px;
+    opacity: 1;
+    transition: max-height 0.25s ease, opacity 0.2s ease, margin-top 0.2s ease;
+  }
+
+  .hud-date-badge.is-collapsed {
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+  }
+
+  .hud-date-badge.is-collapsed .hud-collapsible-content {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    pointer-events: none;
+  }
+
+  .hud-date-badge.is-collapsed .hud-current-date {
+    font-size: 0.95rem;
   }
 
   .hud-j2000-days {
@@ -7460,8 +7605,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   }
 
   .hud-zone-status {
-    margin-top: 0.35rem;
-    padding-top: 0.32rem;
+    margin-top: 0.3rem;
+    padding-top: 0.28rem;
     border-top: 1px solid rgba(148, 163, 184, 0.16);
     display: flex;
     flex-direction: column;
@@ -8558,12 +8703,24 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
   @media (max-width: 768px) {
     .top-bar {
-      padding: 0.4rem 0.65rem;
-      gap: 0.3rem;
+      padding: 0.35rem 0.55rem;
+      gap: 0.25rem;
+    }
+
+    .brand-area {
+      gap: 0.4rem;
+    }
+
+    .brand-icon {
+      font-size: 1.1rem;
     }
 
     .brand-titles h1 {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
+    }
+
+    .brand-titles .subtitle {
+      display: none;
     }
 
     .bar-group-label {
@@ -8571,27 +8728,34 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     .scale-zone-selector {
-      padding: 0.16rem 0.3rem;
-      gap: 0.22rem;
+      padding: 0.12rem 0.25rem;
+      gap: 0.18rem;
+      flex: 1;
+      justify-content: center;
     }
 
     .zone-btn,
     .moon-mode-btn {
-      font-size: 0.68rem;
-      padding: 0.24rem 0.45rem;
+      font-size: 0.65rem;
+      padding: 0.22rem 0.38rem;
+    }
+
+    /* スマホ画面では縮尺ボタンの補足テキストを非表示にして1行にすっきり収める */
+    .zone-sub-text {
+      display: none;
     }
 
     .moon-system-switcher {
-      top: 3.8rem;
-      left: 0.5rem;
-      right: 0.5rem;
+      top: 3.5rem;
+      left: 0.4rem;
+      right: 0.4rem;
       transform: none;
       max-width: none;
-      padding: 0.38rem 0.55rem;
+      padding: 0.32rem 0.48rem;
     }
 
     .ms-switcher-title {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
     }
 
     .hamburger-label {
@@ -8599,19 +8763,23 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     .hamburger-btn {
-      padding: 0.36rem 0.55rem;
+      padding: 0.32rem 0.45rem;
     }
 
     /* スマホ・タブレット縦向きでは左上HUDをコンパクト化 */
     .hud-date-badge {
-      top: 0.5rem;
-      left: 0.55rem;
-      padding: 0.42rem 0.65rem;
-      max-width: 245px;
+      top: 0.4rem;
+      left: 0.45rem;
+      padding: 0.32rem 0.55rem;
+      max-width: 220px;
+    }
+
+    .hud-date-badge.is-collapsed {
+      padding: 0.25rem 0.48rem;
     }
 
     .hud-current-date {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
     }
 
     .hud-zone-range {
@@ -8619,37 +8787,120 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     .hud-bottom-left {
-      bottom: 0.5rem;
-      left: 0.55rem;
+      bottom: 0.45rem;
+      left: 0.45rem;
     }
 
     /* 詳細パネルをスマホ操作しやすい下部ボトムシートに自動変形 */
     .detail-panel {
       top: auto;
-      left: 0.5rem;
-      right: 0.5rem;
-      bottom: 0.4rem;
+      left: 0.4rem;
+      right: 0.4rem;
+      bottom: 0.35rem;
       width: auto;
       max-width: none;
       max-height: 52vh;
       border-radius: 16px 16px 12px 12px;
-      padding: 0.65rem 0.85rem 0.85rem;
+      padding: 0.6rem 0.75rem 0.75rem;
     }
 
     .sheet-drag-handle {
       display: block;
     }
 
-    /* 下部コントロールバーをコンパクト化 */
+    /* 下部コントロールバーをスマホ向け2段レイアウトに再編成 */
     .bottom-controls {
-      padding: 0.42rem 0.65rem;
-      gap: 0.4rem;
+      padding: 0.35rem 0.55rem;
+      gap: 0.32rem;
+      justify-content: space-between;
     }
 
+    /* 1段目：全幅早見スライダー */
     .timeline-scrubber {
-      order: 3;
+      order: 1;
       min-width: 100%;
       max-width: 100%;
+      margin-bottom: 0.1rem;
+    }
+
+    .scrubber-labels {
+      font-size: 0.62rem;
+    }
+
+    /* 2段目左：再生＆速度コントロール */
+    .transport-controls {
+      order: 2;
+      flex: 1;
+      gap: 0.22rem;
+    }
+
+    .ctrl-btn {
+      padding: 0.26rem 0.42rem;
+      font-size: 0.66rem;
+    }
+
+    .ctrl-btn.primary-play {
+      min-width: 76px;
+    }
+
+    .speed-btn {
+      padding: 0.22rem 0.34rem;
+      font-size: 0.62rem;
+    }
+
+    /* 2段目右：日付入力＆今日ボタン */
+    .date-picker-controls {
+      order: 3;
+      gap: 0.22rem;
+    }
+
+    .date-input {
+      font-size: 0.64rem;
+      padding: 0.24rem 0.35rem;
+      max-width: 112px;
+    }
+
+    .ctrl-btn.today-btn {
+      padding: 0.26rem 0.45rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .brand-icon {
+      display: none;
+    }
+
+    .brand-titles h1 {
+      font-size: 0.62rem;
+    }
+
+    .zone-btn,
+    .moon-mode-btn {
+      font-size: 0.6rem;
+      padding: 0.2rem 0.28rem;
+    }
+
+    .nav-pill {
+      padding: 0.16rem 0.38rem;
+      font-size: 0.64rem;
+    }
+
+    .transport-controls {
+      justify-content: flex-start;
+    }
+
+    .speed-selector {
+      gap: 0.12rem;
+    }
+
+    .speed-btn {
+      padding: 0.2rem 0.26rem;
+      font-size: 0.58rem;
+    }
+
+    .date-input {
+      max-width: 96px;
+      font-size: 0.58rem;
     }
   }
 </style>
