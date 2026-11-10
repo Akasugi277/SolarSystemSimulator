@@ -1397,9 +1397,35 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             <span id="detail-category" class="detail-category">内惑星 / 地球型惑星（岩石惑星）</span>
           </div>
         </div>
-        <button type="button" id="btn-close-detail" class="btn-close-detail" title="解説パネルを閉じる">
-          ✕
-        </button>
+        <div class="detail-header-actions">
+          <button
+            type="button"
+            id="btn-minimize-detail"
+            class="detail-action-btn"
+            title="解説パネルを最小化"
+            aria-label="解説パネルを最小化"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            id="btn-maximize-detail"
+            class="detail-action-btn"
+            title="解説パネルを全画面表示"
+            aria-label="解説パネルを全画面表示"
+          >
+            ⛶
+          </button>
+          <button
+            type="button"
+            id="btn-close-detail"
+            class="btn-close-detail"
+            title="解説パネルを閉じる"
+            aria-label="解説パネルを閉じる"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       <!-- リアルタイム軌道計算値 -->
@@ -1502,6 +1528,18 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         </div>
         <div id="detail-moons-list" class="detail-moons-list"></div>
       </div>
+
+      <!-- 参照文献・学術論文・公式データリンク（準備枠） -->
+      <div id="detail-references-section" class="detail-references-section">
+        <div class="moons-section-header">
+          <h3 id="detail-references-heading">📚 参照論文・学術リファレンス</h3>
+          <span id="detail-references-badge" class="moon-count-badge references-badge">DATA</span>
+        </div>
+        <div id="detail-references-summary" class="detail-references-summary">
+          NASA JPL SSD / Horizons、IAU Minor Planet Center (MPC)、および各探査ミッション公表データに基づく学術典拠・論文リファレンス枠です。
+        </div>
+        <div id="detail-references-list" class="detail-references-list"></div>
+      </div>
     </aside>
   </main>
 
@@ -1568,7 +1606,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
 <script>
   import { gsap } from 'gsap';
-  import type { PlanetData, SunData, ScaleZone, SCALE_ZONES_META } from '../data/solarSystem';
+  import type { PlanetData, SunData, ScaleZone, SCALE_ZONES_META, AcademicReference } from '../data/solarSystem';
 
   /**
    * 太陽系軌道早見シミュレーター クライアント制御スクリプト
@@ -1807,6 +1845,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const detailMoonsHeadingEl = document.getElementById('detail-moons-heading');
     const detailMoonBadgeEl = document.getElementById('detail-moon-badge');
     const detailMoonsListEl = document.getElementById('detail-moons-list');
+    const btnMinimizeDetail = document.getElementById('btn-minimize-detail');
+    const btnMaximizeDetail = document.getElementById('btn-maximize-detail');
+    const detailReferencesSectionEl = document.getElementById('detail-references-section');
+    const detailReferencesBadgeEl = document.getElementById('detail-references-badge');
+    const detailReferencesSummaryEl = document.getElementById('detail-references-summary');
+    const detailReferencesListEl = document.getElementById('detail-references-list');
 
     // SVG内の各天体・軌道・衛星・多重環・彗星テイルDOMキャッシュ
     interface CachedMoonDom {
@@ -2893,6 +2937,112 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       setDrawerOpen(false);
     });
 
+    function escapeHtml(str: string): string {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    type DetailPanelMode = 'normal' | 'minimized' | 'maximized';
+    let detailPanelMode: DetailPanelMode = 'normal';
+
+    function setDetailPanelMode(mode: DetailPanelMode) {
+      if (!detailPanelEl) return;
+      detailPanelMode = mode;
+
+      gsap.killTweensOf(detailPanelEl);
+      detailPanelEl.style.transform = '';
+
+      detailPanelEl.classList.toggle('is-minimized', mode === 'minimized');
+      detailPanelEl.classList.toggle('is-maximized', mode === 'maximized');
+
+      if (btnMinimizeDetail) {
+        const isMin = mode === 'minimized';
+        btnMinimizeDetail.textContent = isMin ? '🗖' : '−';
+        btnMinimizeDetail.title = isMin ? '解説パネルを展開' : '解説パネルを最小化';
+        btnMinimizeDetail.setAttribute('aria-label', isMin ? '解説パネルを展開' : '解説パネルを最小化');
+      }
+
+      if (btnMaximizeDetail) {
+        const isMax = mode === 'maximized';
+        btnMaximizeDetail.textContent = isMax ? '🗗' : '⛶';
+        btnMaximizeDetail.title = isMax ? '通常サイズに戻す' : '解説パネルを全画面表示';
+        btnMaximizeDetail.setAttribute('aria-label', isMax ? '通常サイズに戻す' : '解説パネルを全画面表示');
+      }
+    }
+
+    /**
+     * 参照文献・学術論文・公式データソースのリストを描画する（準備枠）
+     */
+    function renderReferencesSection(references?: AcademicReference[], bodyName?: string) {
+      if (!detailReferencesSectionEl || !detailReferencesListEl) return;
+
+      detailReferencesSectionEl.style.display = 'block';
+
+      const defaultReferences: AcademicReference[] = [
+        {
+          title: 'JPL Solar System Dynamics (SSD) & Horizons Ephemeris System',
+          authors: 'Giorgini, J. D., Yeomans, D. K., et al.',
+          year: 1996,
+          journalOrSource: 'NASA Jet Propulsion Laboratory / Caltech',
+          doiOrUrl: 'https://ssd.jpl.nasa.gov/horizons/',
+          description: '太陽系天体（惑星・準惑星・衛星・小惑星・彗星）のJ2000.0接触軌道要素および高精度位置推算エフェメリス。',
+        },
+        {
+          title: 'IAU Working Group on Cartographic Coordinates and Rotational Elements (WGCCRE)',
+          authors: 'Archinal, B. A., et al.',
+          year: 2018,
+          journalOrSource: 'Celestial Mechanics and Dynamical Astronomy, 130(3), 22',
+          doiOrUrl: 'https://doi.org/10.1007/s10569-017-9805-5',
+          description: '惑星・衛星の自転軸傾斜角、自転周期、赤道半径・極半径の国際天文学連合公式定義。',
+        },
+        {
+          title: 'Minor Planet Center (MPC) Orbit Database',
+          authors: 'International Astronomical Union (IAU)',
+          year: 2024,
+          journalOrSource: 'Smithsonian Astrophysical Observatory',
+          doiOrUrl: 'https://minorplanetcenter.net/',
+          description: '太陽系外縁天体（TNO）・カイパーベルト天体・ケンタウルス族・周期彗星の確定軌道要素データ。',
+        },
+      ];
+
+      const refList = references && references.length > 0 ? references : defaultReferences;
+
+      if (detailReferencesBadgeEl) {
+        detailReferencesBadgeEl.textContent = `${refList.length}件`;
+      }
+
+      if (detailReferencesSummaryEl && bodyName) {
+        detailReferencesSummaryEl.textContent = `${bodyName}に関する主要学術論文・公式軌道カタログ・観測探査ミッションデータのリファレンス枠（準備枠）です。`;
+      }
+
+      detailReferencesListEl.innerHTML = refList
+        .map(
+          (ref) => `
+          <div class="reference-card">
+            <div class="reference-card-header">
+              <span class="ref-journal-badge">${escapeHtml(ref.journalOrSource)}</span>
+              ${ref.year ? `<span class="ref-year">${ref.year}年</span>` : ''}
+            </div>
+            <h4 class="ref-title">${escapeHtml(ref.title)}</h4>
+            ${ref.authors ? `<div class="ref-authors">著者/機関: ${escapeHtml(ref.authors)}</div>` : ''}
+            ${ref.description ? `<p class="ref-desc">${escapeHtml(ref.description)}</p>` : ''}
+            ${
+              ref.doiOrUrl
+                ? `<a href="${ref.doiOrUrl}" target="_blank" rel="noopener noreferrer" class="ref-link-btn" title="外部学術サイト / データベースを開く">
+                     🔗 論文 / データソースを開く ↗
+                   </a>`
+                : ''
+            }
+          </div>
+        `
+        )
+        .join('');
+    }
+
     /**
      * 詳細パネルの表示・非表示アニメーション（PCでは右スライド、スマホ・タブレットでは下部ボトムシート）
      */
@@ -2900,6 +3050,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (!detailPanelEl) return;
       const mobile = isMobileSheetLayout();
       if (show) {
+        if (detailPanelMode === 'minimized') {
+          setDetailPanelMode('normal');
+        }
         gsap.to(detailPanelEl, {
           x: 0,
           y: 0,
@@ -2908,6 +3061,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           ease: 'power3.out',
         });
       } else {
+        setDetailPanelMode('normal');
         gsap.to(detailPanelEl, {
           x: mobile ? 0 : 420,
           y: mobile ? 480 : 0,
@@ -5864,6 +6018,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           });
         });
       }
+      renderReferencesSection(sunData.references, sunData.nameJa);
     }
 
     /**
@@ -6038,6 +6193,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           bindMoonCardHighlight(detailMoonsListEl);
         }
       }
+      renderReferencesSection(planet.references, planet.nameJa);
     }
 
     // --- イベントリスナーの登録 ---
@@ -6319,8 +6475,26 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       });
     });
 
-    // 5. 詳細パネルの閉じるボタン・縮尺基準リセットボタン
-    document.getElementById('btn-close-detail')?.addEventListener('click', () => {
+    // 5. 詳細パネルの最小化・全画面・閉じるボタン・縮尺基準リセットボタン
+    btnMinimizeDetail?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setDetailPanelMode(detailPanelMode === 'minimized' ? 'normal' : 'minimized');
+    });
+
+    btnMaximizeDetail?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setDetailPanelMode(detailPanelMode === 'maximized' ? 'normal' : 'maximized');
+    });
+
+    // 最小化状態でパネルがクリックされた場合は通常サイズに展開
+    detailPanelEl?.addEventListener('click', () => {
+      if (detailPanelMode === 'minimized') {
+        setDetailPanelMode('normal');
+      }
+    });
+
+    document.getElementById('btn-close-detail')?.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (simState.isMoonSystemView) {
         // 天体の拡大ビュー表示中は、拡大ビューを閉じることなく解説パネルのみをスライド収納
         animateDetailPanel(false);
@@ -7850,22 +8024,119 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     margin-top: 0.1rem;
   }
 
+  .detail-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .detail-action-btn,
   .btn-close-detail {
     background: rgba(148, 163, 184, 0.12);
-    border: 1px solid transparent;
+    border: 1px solid rgba(148, 163, 184, 0.18);
     color: var(--text-muted);
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 6px;
     cursor: pointer;
     display: grid;
     place-items: center;
-    flex-shrink: 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    transition: all 0.18s ease;
   }
 
+  .detail-action-btn:hover,
   .btn-close-detail:hover {
     color: #ffffff;
-    border-color: var(--border-subtle);
+    border-color: rgba(56, 189, 248, 0.55);
+    background: rgba(56, 189, 248, 0.18);
+  }
+
+  /* 最小化モード */
+  .detail-panel.is-minimized {
+    top: auto !important;
+    bottom: 0.75rem !important;
+    right: 0.9rem !important;
+    width: 320px !important;
+    max-width: calc(100vw - 1.8rem) !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 0.45rem 0.75rem !important;
+    border-color: rgba(56, 189, 248, 0.55) !important;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.25);
+  }
+
+  .detail-panel.is-minimized:hover {
+    border-color: var(--accent-cyan) !important;
+  }
+
+  .detail-panel.is-minimized .detail-header {
+    margin-bottom: 0;
+  }
+
+  .detail-panel.is-minimized .detail-symbol {
+    font-size: 1.4rem;
+  }
+
+  .detail-panel.is-minimized .detail-name-row h2 {
+    font-size: 0.95rem;
+  }
+
+  .detail-panel.is-minimized .detail-category,
+  .detail-panel.is-minimized .detail-live-box,
+  .detail-panel.is-minimized .detail-specs,
+  .detail-panel.is-minimized .detail-description,
+  .detail-panel.is-minimized .btn-open-moon-view,
+  .detail-panel.is-minimized .detail-interior-section,
+  .detail-panel.is-minimized .detail-rings-section,
+  .detail-panel.is-minimized .detail-moons-section,
+  .detail-panel.is-minimized .detail-references-section,
+  .detail-panel.is-minimized .sheet-drag-handle {
+    display: none !important;
+  }
+
+  /* 全画面表示モード */
+  .detail-panel.is-maximized {
+    position: fixed !important;
+    top: 0.75rem !important;
+    left: 0.9rem !important;
+    right: 0.9rem !important;
+    bottom: 0.75rem !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    z-index: 90 !important;
+    background: rgba(8, 14, 28, 0.96) !important;
+    backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.15) !important;
+    padding: 1.25rem 1.6rem !important;
+  }
+
+  .detail-panel.is-maximized .detail-header {
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .detail-panel.is-maximized .detail-name-row h2 {
+    font-size: 1.6rem;
+  }
+
+  .detail-panel.is-maximized .detail-symbol {
+    font-size: 2.4rem;
+  }
+
+  .detail-panel.is-maximized .detail-description {
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .detail-panel.is-maximized .live-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .detail-live-box {
@@ -8230,6 +8501,119 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     font-size: 0.74rem;
     color: var(--text-muted);
     padding: 0.35rem 0;
+  }
+
+  /* 参照文献セクションのスタイル */
+  .detail-references-section {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+  }
+
+  .references-badge {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+  }
+
+  .detail-references-summary {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .detail-references-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 0.2rem;
+  }
+
+  :global(.reference-card) {
+    background: rgba(10, 16, 33, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+  }
+
+  :global(.reference-card:hover) {
+    border-color: rgba(56, 189, 248, 0.45);
+    background: rgba(15, 23, 42, 0.88);
+  }
+
+  :global(.reference-card-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+
+  :global(.ref-journal-badge) {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    padding: 0.08rem 0.38rem;
+    border-radius: 4px;
+  }
+
+  :global(.ref-year) {
+    font-size: 0.64rem;
+    font-family: var(--font-mono);
+    color: #94a3b8;
+  }
+
+  :global(.ref-title) {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0;
+    line-height: 1.35;
+  }
+
+  :global(.ref-authors) {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  :global(.ref-desc) {
+    font-size: 0.66rem;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  :global(.ref-link-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+    align-self: flex-start;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #38bdf8;
+    text-decoration: none;
+    padding: 0.18rem 0.5rem;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 6px;
+    transition: all 0.18s ease;
+  }
+
+  :global(.ref-link-btn:hover) {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.6);
+    color: #ffffff;
+    text-decoration: none;
   }
 
   /* 下部タイムライン＆コントロールバー */
@@ -8869,6 +9253,26 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
     .sheet-drag-handle {
       display: block;
+    }
+
+    .detail-panel.is-minimized {
+      left: 0.4rem !important;
+      right: 0.4rem !important;
+      bottom: 0.35rem !important;
+      top: auto !important;
+      max-height: none !important;
+      padding: 0.38rem 0.65rem !important;
+      border-radius: 12px !important;
+    }
+
+    .detail-panel.is-maximized {
+      top: 0.35rem !important;
+      left: 0.4rem !important;
+      right: 0.4rem !important;
+      bottom: 0.35rem !important;
+      max-height: none !important;
+      border-radius: 14px !important;
+      padding: 0.85rem 0.95rem !important;
     }
 
     /* 下部コントロールバーをスマホ向け2段レイアウトに再編成 */

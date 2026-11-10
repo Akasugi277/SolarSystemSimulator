@@ -117,6 +117,22 @@ export interface ZoneScaleConfig {
   customDisplayEcc?: number | Record<ScaleZone, number>;
 }
 
+/** 参照文献・学術論文・データソース情報 */
+export interface AcademicReference {
+  /** 論文またはリソースタイトル */
+  title: string;
+  /** 著者名または機関名（任意） */
+  authors?: string;
+  /** 公開年（任意） */
+  year?: number;
+  /** 掲載誌・学術機関名・データベース名 */
+  journalOrSource: string;
+  /** DOIまたは公式URL（任意） */
+  doiOrUrl?: string;
+  /** 補足説明（任意） */
+  description?: string;
+}
+
 /** 惑星・準惑星・準惑星候補・彗星のデータ型定義 */
 export interface PlanetData {
   /** 天体の識別ID */
@@ -179,6 +195,8 @@ export interface PlanetData {
   description: string;
   /** 主要な衛星リスト */
   moons: MoonData[];
+  /** 参照文献・学術論文・公式データソースのリスト（準備枠） */
+  references?: AcademicReference[];
 }
 
 /** 中心星（太陽）のデータ型定義 */
@@ -196,6 +214,8 @@ export interface SunData {
   interiorStructure: InteriorStructureConfig;
   /** 3つの縮尺ごとの太陽の表示半径（px） */
   sizeByZonePx: Record<ScaleZone, number>;
+  /** 参照文献・学術論文・公式データソースのリスト（準備枠） */
+  references?: AcademicReference[];
 }
 
 /** 基準エポック J2000.0 のミリ秒タイムスタンプ (2000-01-01T12:00:00Z) */
