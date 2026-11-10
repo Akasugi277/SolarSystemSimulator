@@ -1357,9 +1357,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       </div>
     </div>
 
-    <!-- 左下フローティング：ズームコントロール -->
+    <!-- 左下フローティング：ズームコントロール＆2D/3D視点クイック切替 -->
     <div class="hud-bottom-left">
       <div class="hud-zoom-controls">
+        <button type="button" id="btn-quick-toggle-3d" class="hud-reset-btn quick-3d-btn" title="2D真上視点と3D斜めチルト視点を切り替えます">
+          3D視点
+        </button>
         <button type="button" id="btn-zoom-in" class="hud-icon-btn" title="ズームイン (拡大)">＋</button>
         <button type="button" id="btn-zoom-out" class="hud-icon-btn" title="ズームアウト (縮小)">－</button>
         <button type="button" id="btn-reset-camera" class="hud-reset-btn" title="カメラ位置とズームを現在の縮尺基準に戻す">
@@ -2521,15 +2524,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             showIncGuide = true;
             isIncMuted = !isSelected;
           } else {
-            // 選択天体のみ（推奨・スマート表示モード）
+            // 選択天体スマート表示モード（推奨）
             if (simState.selectedBodyId !== 'overview') {
               // 特定天体を選択中は、その天体のみを鮮明に強調
               showIncGuide = isSelected;
               isIncMuted = false;
             } else {
-              // 縮尺全体（未選択）時は、軌道傾斜が顕著な天体（>= 7°）かつ現在縮尺で主要な天体のみ控えめに表示
-              const isMajorInclination = (p.orbit.inclinationDeg ?? 0) >= 7.0;
-              showIncGuide = isMajorInclination && effectiveOpacity >= 0.55;
+              // 縮尺全体（未選択）時は、現在のアクティブ縮尺ゾーンで可視の天体をすっきりと控えめに表示
+              showIncGuide = effectiveOpacity >= 0.35;
               isIncMuted = true;
             }
           }
@@ -6133,8 +6135,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     btnIncBoost15x?.addEventListener('click', () => setInclinationBoost(1.5));
     btnIncBoost2x?.addEventListener('click', () => setInclinationBoost(2.0));
 
-    // 左上HUDの折りたたみ・展開制御（モバイルではデフォルト折りたたみ）
-    let isHudCollapsed = typeof window !== 'undefined' && window.innerWidth <= 768;
+    // 左上HUDの折りたたみ・展開制御（初期状態は展開表示・ワンタップで開閉可能）
+    let isHudCollapsed = false;
     function updateHudCollapseUi() {
       if (hudDateBadgeEl) {
         hudDateBadgeEl.classList.toggle('is-collapsed', isHudCollapsed);
@@ -6212,12 +6214,22 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
     });
 
-    // 2D真上視点 ⇔ 3D斜めチルト視点
+    // 2D真上視点 ⇔ 3D斜めチルト視点（画面左下のクイックボタンとも同期）
     const btnView2d = document.getElementById('btn-view-2d');
     const btnView3d = document.getElementById('btn-view-3d');
+    const btnQuickToggle3d = document.getElementById('btn-quick-toggle-3d');
+
+    function sync3dViewUi(is3d: boolean) {
+      if (btnQuickToggle3d) {
+        btnQuickToggle3d.textContent = is3d ? '2D視点' : '3D視点';
+        btnQuickToggle3d.classList.toggle('active', is3d);
+      }
+      btnView3d?.classList.toggle('active', is3d);
+      btnView2d?.classList.toggle('active', !is3d);
+    }
+
     btnView2d?.addEventListener('click', () => {
-      btnView2d.classList.add('active');
-      btnView3d?.classList.remove('active');
+      sync3dViewUi(false);
       gsap.to(simState, {
         tiltY: 1.0,
         duration: 0.85,
@@ -6225,10 +6237,18 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       });
     });
     btnView3d?.addEventListener('click', () => {
-      btnView3d.classList.add('active');
-      btnView2d?.classList.remove('active');
+      sync3dViewUi(true);
       gsap.to(simState, {
         tiltY: 0.44,
+        duration: 0.85,
+        ease: 'power3.inOut',
+      });
+    });
+    btnQuickToggle3d?.addEventListener('click', () => {
+      const willBe3d = simState.tiltY > 0.7; // 現在2Dなら3Dへ、3Dなら2Dへ
+      sync3dViewUi(willBe3d);
+      gsap.to(simState, {
+        tiltY: willBe3d ? 0.44 : 1.0,
         duration: 0.85,
         ease: 'power3.inOut',
       });
@@ -7673,6 +7693,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   .hud-reset-btn:hover {
     border-color: var(--border-highlight);
     background: rgba(30, 41, 59, 0.85);
+  }
+
+  .quick-3d-btn.active {
+    border-color: var(--accent-cyan);
+    background: rgba(56, 189, 248, 0.22);
+    color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
   }
 
   /* 右側天体詳細パネル（PC表示・説明文のテキスト選択を許可） */
