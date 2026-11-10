@@ -697,6 +697,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       <g id="camera-rig">
         <!-- 黄経ガイド目盛りサークル -->
         <g id="ecliptic-grid" class="ecliptic-grid">
+          <!-- 黄道面（基準面）の半透明ベースディスク（3D傾斜時に基準床面として立体感を強調） -->
+          <ellipse id="ecliptic-base-disk" cx="0" cy="0" rx="575" ry="575" class="ecliptic-base-disk" />
           <ellipse id="grid-outer-ring" cx="0" cy="0" rx="575" ry="575" class="grid-ring" />
           {
             Array.from({ length: 12 }).map((_, idx) => {
@@ -1674,6 +1676,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const beltsLayerEl = document.getElementById('belts-layer') as SVGGElement | null;
     const orbitsLayerEl = document.getElementById('orbits-layer') as SVGGElement | null;
     const bodiesLayerEl = document.getElementById('bodies-layer') as SVGGElement | null;
+    const eclipticBaseDiskEl = document.getElementById('ecliptic-base-disk') as SVGEllipseElement | null;
     const gridOuterRingEl = document.getElementById('grid-outer-ring') as SVGEllipseElement | null;
     const mainBeltGroupEl = document.getElementById('main-asteroid-belt') as SVGGElement | null;
     const mainBeltHaloEl = document.getElementById('main-belt-halo') as SVGEllipseElement | null;
@@ -2121,6 +2124,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         }
 
         const maxRadius = 575;
+        if (eclipticBaseDiskEl) {
+          eclipticBaseDiskEl.setAttribute('rx', maxRadius.toFixed(1));
+          eclipticBaseDiskEl.setAttribute('ry', (maxRadius * tiltY).toFixed(1));
+        }
         if (gridOuterRingEl) {
           gridOuterRingEl.setAttribute('rx', maxRadius.toFixed(1));
           gridOuterRingEl.setAttribute('ry', (maxRadius * tiltY).toFixed(1));
@@ -7192,6 +7199,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     pointer-events: none;
   }
 
+  /* 黄道面（基準面）の半透明ベースディスク */
+  .ecliptic-base-disk {
+    fill: rgba(30, 58, 138, 0.06);
+    stroke: none;
+    pointer-events: none;
+  }
+
   /* 3D軌道傾斜・高度ポール・黄道面フットプリント・交点線レイヤー */
   .inclination-guides-layer {
     pointer-events: none;
@@ -7201,12 +7215,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   .inc-stem {
     vector-effect: non-scaling-stroke;
     stroke-linecap: round;
+    filter: drop-shadow(0 0 2px currentColor);
   }
 
   /* 黄道面フットプリント影・ドット */
   .inc-footprint {
     vector-effect: non-scaling-stroke;
-    stroke-width: 0.8;
+    stroke-width: 1.2;
+    filter: drop-shadow(0 0 3px currentColor);
   }
 
   /* 選択天体の黄道面交点線 (Line of Nodes) */
