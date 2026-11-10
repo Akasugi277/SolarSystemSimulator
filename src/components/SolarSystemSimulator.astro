@@ -447,7 +447,30 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         </div>
       </div>
 
-      <!-- 5. 軌道線スタイルの凡例 -->
+      <!-- 5. 3D軌道傾斜・高度ポールの表示と強調設定 -->
+      <div class="drawer-section">
+        <span class="drawer-label">3D軌道傾斜・高度ポールの表示</span>
+        <div class="drawer-switch-list">
+          <button type="button" id="btn-toggle-inclination-guides" class="drawer-switch-btn active" title="3D視点時に黄道面からの高低差ポール、足元フットプリント、交点線を表示">
+            <span>📐 3D高度ポール・交点線の表示</span>
+            <span id="badge-toggle-inclination-guides" class="switch-state">ON</span>
+          </button>
+        </div>
+        <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">軌道傾斜角の視覚的強調倍率</div>
+        <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="軌道傾斜の強調倍率">
+          <button type="button" id="btn-inc-boost-1x" class="toggle-btn" title="実際の天文学通りの傾斜角で表示">
+            実角度 (1.0x)
+          </button>
+          <button type="button" id="btn-inc-boost-15x" class="toggle-btn active" title="傾斜を1.5倍に強調して立体感を際立たせる">
+            強調 (1.5x)
+          </button>
+          <button type="button" id="btn-inc-boost-2x" class="toggle-btn" title="傾斜を2.0倍にダイナミック強調">
+            大強調 (2.0x)
+          </button>
+        </div>
+      </div>
+
+      <!-- 6. 軌道線スタイルの凡例 -->
       <div class="drawer-section">
         <span class="drawer-label">軌道線スタイルの凡例</span>
         <div class="drawer-legend-box">
@@ -754,6 +777,42 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               />
             ))
           }
+        </g>
+
+        <!-- 3D軌道傾斜・高度ポール・黄道面フットプリント・交点線レイヤー -->
+        <g id="inclination-guides-layer" class="inclination-guides-layer" pointer-events="none">
+          <!-- 選択天体の黄道面交点線 (Line of Nodes: 昇交点☊ と 降交点☋ を結ぶ軸) -->
+          <g id="sel-nodes-axis-group" class="sel-nodes-axis-group" style="display: none;">
+            <line id="sel-nodes-axis-line" class="nodes-axis-line" x1="0" y1="0" x2="0" y2="0" />
+            <g id="sel-node-asc-marker" class="node-marker asc-node">
+              <circle cx="0" cy="0" r="5" class="node-marker-bg" />
+              <text x="0" y="3.5" class="node-symbol">☊</text>
+              <text x="9" y="3.5" class="node-label">昇交点</text>
+            </g>
+            <g id="sel-node-desc-marker" class="node-marker desc-node">
+              <circle cx="0" cy="0" r="5" class="node-marker-bg" />
+              <text x="0" y="3.5" class="node-symbol">☋</text>
+              <text x="9" y="3.5" class="node-label">降交点</text>
+            </g>
+          </g>
+
+          <!-- 各天体の高度ドロップライン（黄道面への垂直ステム線）と足元フットプリント -->
+          {
+            PLANETS_DATA.map((planet) => (
+              <g id={`inc-guide-${planet.id}`} class="planet-inc-guide" data-planet-id={planet.id}>
+                <!-- 黄道面上のフットプリント影・ドット -->
+                <ellipse id={`inc-footprint-${planet.id}`} class="inc-footprint" cx="0" cy="0" rx="3.5" ry="1.8" />
+                <!-- 天体から黄道面へ下ろす垂直ステム線 (高度ドロップライン) -->
+                <line id={`inc-stem-${planet.id}`} class="inc-stem" x1="0" y1="0" x2="0" y2="0" />
+              </g>
+            ))
+          }
+
+          <!-- 選択天体の高度・傾斜情報バッジ -->
+          <g id="sel-elevation-badge-group" class="sel-elevation-badge-group" style="display: none;">
+            <rect id="sel-elevation-badge-bg" class="elevation-badge-bg" rx="4" ry="4" x="0" y="0" width="130" height="22" />
+            <text id="sel-elevation-badge-text" class="elevation-badge-text" x="65" y="14.5">Z: +0.00 AU | 傾斜 0.0°</text>
+          </g>
         </g>
 
         <!-- 天体（太陽＋8惑星＋5準惑星＋4準惑星候補＋5周期彗星＋各衛星）レイヤー -->
@@ -1325,6 +1384,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             <span class="metric-label">地球からの距離</span>
             <span id="live-earth-dist" class="metric-value">0.000 AU</span>
           </div>
+          <div class="live-metric">
+            <span class="metric-label">黄道面高低差 (Z)</span>
+            <span id="live-z-dist" class="metric-value">±0.000 AU</span>
+          </div>
         </div>
       </div>
 
@@ -1518,6 +1581,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       highlightDwarfs: false,
       highlightComets: false,
       showProbesAndBoundaries: false, // 探査機および参照境界線の表示（デフォルトOFF）
+      showInclinationGuides: true, // 3D軌道傾斜・高度ポールの表示（デフォルトON）
+      inclinationBoost: 1.5, // 軌道傾斜の視覚的強調倍率（1.0x / 1.5x / 2.0x、デフォルト1.5x推奨）
       activeZone: 'inner' as ScaleZone,
       isMoonSystemView: false,
       moonViewPlanetId: 'jupiter',
@@ -1653,6 +1718,19 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const menuDrawerEl = document.getElementById('hamburger-menu-drawer');
     const menuBackdropEl = document.getElementById('menu-backdrop');
     const btnCloseDrawer = document.getElementById('btn-close-drawer');
+    const btnToggleInclinationGuides = document.getElementById('btn-toggle-inclination-guides');
+    const badgeToggleInclinationGuides = document.getElementById('badge-toggle-inclination-guides');
+    const btnIncBoost1x = document.getElementById('btn-inc-boost-1x');
+    const btnIncBoost15x = document.getElementById('btn-inc-boost-15x');
+    const btnIncBoost2x = document.getElementById('btn-inc-boost-2x');
+
+    // 3D軌道傾斜・交点線・高度バッジDOM
+    const selNodesAxisGroupEl = document.getElementById('sel-nodes-axis-group') as SVGGElement | null;
+    const selNodesAxisLineEl = document.getElementById('sel-nodes-axis-line') as SVGLineElement | null;
+    const selNodeAscMarkerEl = document.getElementById('sel-node-asc-marker') as SVGGElement | null;
+    const selNodeDescMarkerEl = document.getElementById('sel-node-desc-marker') as SVGGElement | null;
+    const selElevationBadgeGroupEl = document.getElementById('sel-elevation-badge-group') as SVGGElement | null;
+    const selElevationBadgeTextEl = document.getElementById('sel-elevation-badge-text') as SVGTextElement | null;
 
     // 詳細パネル要素
     const detailPanelEl = document.getElementById('detail-panel');
@@ -1666,6 +1744,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const liveLongitudeEl = document.getElementById('live-longitude');
     const liveSunDistEl = document.getElementById('live-sun-dist');
     const liveEarthDistEl = document.getElementById('live-earth-dist');
+    const liveZDistEl = document.getElementById('live-z-dist');
     const specSmaEl = document.getElementById('spec-sma');
     const specPeriodEl = document.getElementById('spec-period');
     const specSpeedEl = document.getElementById('spec-speed');
@@ -1720,6 +1799,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       cometTailPathEl: SVGPathElement | null;
       moonsGroupEl: SVGGElement | null;
       moons: CachedMoonDom[];
+      /** 3D高度ドロップラインと黄道面フットプリントDOM */
+      incGuideGroupEl: SVGGElement | null;
+      incFootprintEl: SVGEllipseElement | null;
+      incStemEl: SVGLineElement | null;
       /** 直近に軌道パスを生成したときのパラメータキー（変化がなければ再生成しない） */
       lastOrbitKey: string;
     }
@@ -1751,6 +1834,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         sphereEl: document.getElementById(`moon-sphere-${moon.id}`) as SVGCircleElement | null,
         labelEl: document.getElementById(`moon-label-${moon.id}`) as SVGTextElement | null,
       })),
+      incGuideGroupEl: document.getElementById(`inc-guide-${planet.id}`) as SVGGElement | null,
+      incFootprintEl: document.getElementById(`inc-footprint-${planet.id}`) as SVGEllipseElement | null,
+      incStemEl: document.getElementById(`inc-stem-${planet.id}`) as SVGLineElement | null,
       lastOrbitKey: '',
     }));
 
@@ -1906,47 +1992,94 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     }
 
     /**
-     * 焦点ズレ・離心率・近日点黄経・3Dチルトを反映した軌道上の2D投影座標を算出する
+     * 離心率・近日点黄経・軌道傾斜角・昇交点黄経・3Dチルト・強調倍率を反映した
+     * 3D黄道直交座標系および画面2D投影座標を算出する
      */
     function computeOrbitPointPx(
       eccentricAnomalyRad: number,
       semiMajorPx: number,
       displayEccentricity: number,
       perihelionDeg: number,
-      tiltY: number
-    ): { x: number; y: number; sin2D: number } {
+      inclinationDeg: number,
+      ascendingNodeDeg: number,
+      tiltY: number,
+      inclinationBoost: number = 1.0
+    ): { x: number; y: number; eclipticY: number; zPx: number; sin2D: number } {
       const semiMinorPx = semiMajorPx * Math.sqrt(Math.max(0.01, 1 - displayEccentricity * displayEccentricity));
       const localX = semiMajorPx * (Math.cos(eccentricAnomalyRad) - displayEccentricity);
       const localY = semiMinorPx * Math.sin(eccentricAnomalyRad);
 
-      const periRad = -perihelionDeg * DEG_TO_RAD;
-      const cosP = Math.cos(periRad);
-      const sinP = Math.sin(periRad);
+      // 3D斜めチルト視点へのブレンド率 (2D真上=0.0 ⇔ 3D斜め=1.0)
+      const view3dFactor = Math.max(0, Math.min(1, (1.0 - tiltY) / (1.0 - 0.44)));
 
-      const x2d = localX * cosP - localY * sinP;
-      const y2d = localX * sinP + localY * cosP;
+      // 軌道傾斜角（3D視点時にスムーズに立ち上がり、設定倍率で強調）
+      const effectiveIncDeg = inclinationDeg * view3dFactor * inclinationBoost;
+      const effectiveIncRad = effectiveIncDeg * DEG_TO_RAD;
+      const cosI = Math.cos(effectiveIncRad);
+      const sinI = Math.sin(effectiveIncRad);
+
+      const omegaDeg = perihelionDeg - ascendingNodeDeg;
+      const omegaRad = omegaDeg * DEG_TO_RAD;
+      const nodeRad = ascendingNodeDeg * DEG_TO_RAD;
+
+      const cosW = Math.cos(omegaRad);
+      const sinW = Math.sin(omegaRad);
+      const cosN = Math.cos(nodeRad);
+      const sinN = Math.sin(nodeRad);
+
+      // 1. 軌道面内での近日点引数（ω）回転
+      const xOrb = localX * cosW - localY * sinW;
+      const yOrb = localX * sinW + localY * cosW;
+
+      // 2. 黄道座標系直交座標 (X: 春分点方向, Y_math: 黄経90°方向, Z_math: 黄道北極方向)
+      const X = xOrb * cosN - yOrb * cosI * sinN;
+      const Y_math = xOrb * sinN + yOrb * cosI * cosN;
+      const Z_math = yOrb * sinI;
+
+      // 3. SVG画面系への射影（SVGでは下向きが+Yなので Y_2d = -Y_math）
+      const y2d = -Y_math;
+      const eclipticY = y2d * tiltY;
+
+      // 4. 3D斜め視点（カメラが手前上空から見下ろすピッチ傾斜）
+      // 黄道面より上 (+Z) は画面上側 (-y)、黄道面より下 (-Z) は画面下側 (+y) へ投影
+      const sinCameraPitch = Math.sqrt(Math.max(0, 1 - tiltY * tiltY));
+      const screenY = eclipticY - Z_math * sinCameraPitch;
 
       return {
-        x: x2d,
-        y: y2d * tiltY,
-        sin2D: y2d / Math.max(1, semiMajorPx),
+        x: X,
+        y: screenY,
+        eclipticY,
+        zPx: Z_math,
+        sin2D: -Y_math / Math.max(1, semiMajorPx),
       };
     }
 
     /**
-     * ケプラー楕円軌道のSVG Pathデータ文字列を生成する
+     * 3D空間におけるケプラー楕円軌道のSVG Pathデータ文字列を生成する
      */
     function buildOrbitPathD(
       semiMajorPx: number,
       displayEccentricity: number,
       perihelionDeg: number,
-      tiltY: number
+      inclinationDeg: number,
+      ascendingNodeDeg: number,
+      tiltY: number,
+      inclinationBoost: number = 1.0
     ): string {
       const steps = 96;
       const parts: string[] = [];
       for (let i = 0; i <= steps; i++) {
         const E = (i / steps) * Math.PI * 2;
-        const pt = computeOrbitPointPx(E, semiMajorPx, displayEccentricity, perihelionDeg, tiltY);
+        const pt = computeOrbitPointPx(
+          E,
+          semiMajorPx,
+          displayEccentricity,
+          perihelionDeg,
+          inclinationDeg,
+          ascendingNodeDeg,
+          tiltY,
+          inclinationBoost
+        );
         parts.push(`${i === 0 ? 'M' : 'L'}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`);
       }
       parts.push('Z');
@@ -2153,12 +2286,20 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
         // 軌道パスの更新（軌道形状のパラメータが変化したときだけパスを再生成する）
         if (item.orbitEl) {
-          const orbitKey = `${displaySemiMajorPx.toFixed(1)}|${displayEcc.toFixed(4)}|${tiltY.toFixed(3)}`;
+          const orbitKey = `${displaySemiMajorPx.toFixed(1)}|${displayEcc.toFixed(4)}|${tiltY.toFixed(3)}|${p.inclinationDeg}|${simState.inclinationBoost}`;
           if (orbitKey !== item.lastOrbitKey) {
             item.lastOrbitKey = orbitKey;
             item.orbitEl.setAttribute(
               'd',
-              buildOrbitPathD(displaySemiMajorPx, displayEcc, p.perihelionLongitudeDeg, tiltY)
+              buildOrbitPathD(
+                displaySemiMajorPx,
+                displayEcc,
+                p.perihelionLongitudeDeg,
+                p.inclinationDeg,
+                p.ascendingNodeLongitudeDeg,
+                tiltY,
+                simState.inclinationBoost
+              )
             );
           }
           let orbitAlpha = effectiveOpacity;
@@ -2188,26 +2329,38 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const trueLongitudeDeg = normalizeDegrees(p.perihelionLongitudeDeg + trueAnomalyRad * RAD_TO_DEG);
         const helioDistAu = p.semiMajorAxisAu * (1 - p.eccentricity * Math.cos(eccentricAnomalyRad));
 
-        // 軌道パス上の現在座標 (px, py)
+        // 軌道パス上の現在座標 (px, py, eclipticY, zPx)
         const dispOrbitEra = solveKeplerEquation(meanAnomalyRad, displayEcc);
         const posPx = computeOrbitPointPx(
           dispOrbitEra,
           displaySemiMajorPx,
           displayEcc,
           p.perihelionLongitudeDeg,
-          tiltY
+          p.inclinationDeg,
+          p.ascendingNodeLongitudeDeg,
+          tiltY,
+          simState.inclinationBoost
         );
 
         const tiltAmount = 1 - tiltY;
         const depthScale = 1 + Math.max(-0.8, Math.min(0.8, posPx.sin2D)) * tiltAmount * 0.2;
 
-        const trueLongRad = -trueLongitudeDeg * DEG_TO_RAD;
-        const auX = Math.cos(trueLongRad) * helioDistAu;
-        const auY = Math.sin(trueLongRad) * helioDistAu;
+        // 天文学的な黄道直交座標（AU）
+        const omegaRad = (p.perihelionLongitudeDeg - p.ascendingNodeLongitudeDeg) * DEG_TO_RAD;
+        const nodeRad = p.ascendingNodeLongitudeDeg * DEG_TO_RAD;
+        const incRad = p.inclinationDeg * DEG_TO_RAD;
+        const xOrbAu = helioDistAu * Math.cos(trueAnomalyRad + omegaRad);
+        const yOrbAu = helioDistAu * Math.sin(trueAnomalyRad + omegaRad);
+        const auX = xOrbAu * Math.cos(nodeRad) - yOrbAu * Math.cos(incRad) * Math.sin(nodeRad);
+        const auY = xOrbAu * Math.sin(nodeRad) + yOrbAu * Math.cos(incRad) * Math.cos(nodeRad);
+        const auZ = yOrbAu * Math.sin(incRad);
 
         planetWorldPos[p.id] = {
           x: posPx.x,
           y: posPx.y,
+          eclipticY: posPx.eclipticY,
+          zPx: posPx.zPx,
+          zAu: auZ,
           auX,
           auY,
           helioDistAu,
@@ -2316,6 +2469,49 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           item.nodeEl.classList.toggle('is-compact-body', anim.labelVisibility < 0.4 && !isSelected);
         }
 
+        // 3D高度ドロップライン（垂直ステム線）と黄道面フットプリントの更新
+        const view3dFactor = Math.max(0, Math.min(1, (1.0 - tiltY) / (1.0 - 0.44)));
+        const showIncGuide =
+          simState.showInclinationGuides &&
+          !simState.isMoonSystemView &&
+          effectiveOpacity >= 0.05 &&
+          view3dFactor > 0.08 &&
+          Math.abs(posPx.y - posPx.eclipticY) > 1.2;
+
+        if (item.incGuideGroupEl) {
+          if (showIncGuide) {
+            item.incGuideGroupEl.style.display = 'block';
+            const isAbove = posPx.zPx > 0;
+            const stemColor = isAbove ? '#38bdf8' : '#fb923c';
+            const stemAlpha = isSelected ? 0.95 : lerp(0.35, 0.75, view3dFactor);
+
+            if (item.incStemEl) {
+              item.incStemEl.setAttribute('x1', posPx.x.toFixed(1));
+              item.incStemEl.setAttribute('y1', posPx.y.toFixed(1));
+              item.incStemEl.setAttribute('x2', posPx.x.toFixed(1));
+              item.incStemEl.setAttribute('y2', posPx.eclipticY.toFixed(1));
+              item.incStemEl.setAttribute('stroke', stemColor);
+              item.incStemEl.setAttribute('stroke-opacity', stemAlpha.toFixed(2));
+              item.incStemEl.setAttribute('stroke-width', isSelected ? '1.5' : '1.0');
+              item.incStemEl.setAttribute('stroke-dasharray', isSelected ? 'none' : '3 2');
+            }
+
+            if (item.incFootprintEl) {
+              item.incFootprintEl.setAttribute('cx', posPx.x.toFixed(1));
+              item.incFootprintEl.setAttribute('cy', posPx.eclipticY.toFixed(1));
+              const fpRx = Math.max(2.0, anim.bodySizePx * 0.45);
+              item.incFootprintEl.setAttribute('rx', fpRx.toFixed(1));
+              item.incFootprintEl.setAttribute('ry', (fpRx * tiltY).toFixed(1));
+              item.incFootprintEl.setAttribute('fill', stemColor);
+              item.incFootprintEl.setAttribute('fill-opacity', (stemAlpha * 0.4).toFixed(2));
+              item.incFootprintEl.setAttribute('stroke', stemColor);
+              item.incFootprintEl.setAttribute('stroke-opacity', stemAlpha.toFixed(2));
+            }
+          } else {
+            item.incGuideGroupEl.style.display = 'none';
+          }
+        }
+
         // 衛星システムの更新
         const showThisMoons = simState.showMoons && (anim.moonVisibility > 0.15 || isSelected);
         if (item.moonsGroupEl) {
@@ -2405,6 +2601,66 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         }
       }
 
+      // 選択天体の黄道面交点線 (Line of Nodes) と高度バッジの更新
+      const selPlanet = cachedPlanets.find((cp) => cp.data.id === simState.selectedBodyId);
+      const view3dFactor = Math.max(0, Math.min(1, (1.0 - tiltY) / (1.0 - 0.44)));
+      const shouldShowNodesAxis =
+        simState.showInclinationGuides &&
+        !simState.isMoonSystemView &&
+        selPlanet &&
+        view3dFactor > 0.08 &&
+        selPlanet.data.inclinationDeg > 0.1;
+
+      if (selNodesAxisGroupEl) {
+        if (shouldShowNodesAxis && selPlanet) {
+          selNodesAxisGroupEl.style.display = 'block';
+          const p = selPlanet.data;
+          const anim = bodyAnimState[p.id];
+          const displaySemiMajorPx = lerp(anim.autoOrbitRadiusPx, anim.auOrbitRadiusPx, auBlend);
+          // 交点線の長さ（軌道長半径の約1.25倍）
+          const axisR = displaySemiMajorPx * 1.25;
+          const nodeRad = p.ascendingNodeLongitudeDeg * DEG_TO_RAD;
+          // 黄道面上の交点線方向（昇交点方向角 nodeRad、画面系では y_flat = -sin(nodeRad)）
+          const cosN = Math.cos(nodeRad);
+          const sinN = Math.sin(nodeRad);
+          const xAsc = axisR * cosN;
+          const yAsc = -axisR * sinN * tiltY;
+          const xDesc = -axisR * cosN;
+          const yDesc = axisR * sinN * tiltY;
+
+          if (selNodesAxisLineEl) {
+            selNodesAxisLineEl.setAttribute('x1', xDesc.toFixed(1));
+            selNodesAxisLineEl.setAttribute('y1', yDesc.toFixed(1));
+            selNodesAxisLineEl.setAttribute('x2', xAsc.toFixed(1));
+            selNodesAxisLineEl.setAttribute('y2', yAsc.toFixed(1));
+          }
+          if (selNodeAscMarkerEl) {
+            selNodeAscMarkerEl.setAttribute('transform', `translate(${xAsc.toFixed(1)}, ${yAsc.toFixed(1)})`);
+          }
+          if (selNodeDescMarkerEl) {
+            selNodeDescMarkerEl.setAttribute('transform', `translate(${xDesc.toFixed(1)}, ${yDesc.toFixed(1)})`);
+          }
+
+          // 高度情報バッジの更新
+          if (selElevationBadgeGroupEl && selElevationBadgeTextEl) {
+            const pos = planetWorldPos[p.id];
+            if (pos && Math.abs(pos.y - pos.eclipticY) > 3) {
+              selElevationBadgeGroupEl.style.display = 'block';
+              const badgeX = pos.x + 10;
+              const badgeY = (pos.y + pos.eclipticY) / 2 - 11;
+              selElevationBadgeGroupEl.setAttribute('transform', `translate(${badgeX.toFixed(1)}, ${badgeY.toFixed(1)})`);
+              const zSign = pos.zAu >= 0 ? '+' : '';
+              selElevationBadgeTextEl.textContent = `Z: ${zSign}${pos.zAu.toFixed(2)} AU | 傾斜 ${p.inclinationDeg}°`;
+            } else {
+              selElevationBadgeGroupEl.style.display = 'none';
+            }
+          }
+        } else {
+          selNodesAxisGroupEl.style.display = 'none';
+          if (selElevationBadgeGroupEl) selElevationBadgeGroupEl.style.display = 'none';
+        }
+      }
+
       // 選択中の天体がある場合、カメラ位置を天体の現在座標へスムーズに追従させる（太陽系全体ビュー時のみ）
       // 追従係数はフレームレートに依存しないよう、1フレーム(60fps)あたり0.18相当を経過時間で補正する
       if (!simState.isMoonSystemView) {
@@ -2463,6 +2719,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
               const distFromEarth = Math.hypot(pPos.auX - earthPos.auX, pPos.auY - earthPos.auY);
               setTextIfChanged(liveEarthDistEl, `${distFromEarth.toFixed(2)} AU`);
             }
+          }
+          if (liveZDistEl) {
+            const zAu = pPos.zAu ?? 0;
+            const zSign = zAu > 0.005 ? '+' : '';
+            const dirLabel = Math.abs(zAu) < 0.01 ? '黄道面上' : zAu > 0 ? '北側 (上)' : '南側 (下)';
+            setTextIfChanged(liveZDistEl, `${zSign}${zAu.toFixed(2)} AU (${dirLabel})`);
           }
         }
       }
@@ -5781,6 +6043,26 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       updateCometsToggleUi();
     });
 
+    // 3D軌道傾斜・高度ポールの表示切替
+    btnToggleInclinationGuides?.addEventListener('click', () => {
+      simState.showInclinationGuides = !simState.showInclinationGuides;
+      btnToggleInclinationGuides.classList.toggle('active', simState.showInclinationGuides);
+      if (badgeToggleInclinationGuides) {
+        badgeToggleInclinationGuides.textContent = simState.showInclinationGuides ? 'ON' : 'OFF';
+      }
+    });
+
+    // 軌道傾斜強調倍率の切り替え（1.0x / 1.5x / 2.0x）
+    function setInclinationBoost(boost: number) {
+      simState.inclinationBoost = boost;
+      btnIncBoost1x?.classList.toggle('active', boost === 1.0);
+      btnIncBoost15x?.classList.toggle('active', boost === 1.5);
+      btnIncBoost2x?.classList.toggle('active', boost === 2.0);
+    }
+    btnIncBoost1x?.addEventListener('click', () => setInclinationBoost(1.0));
+    btnIncBoost15x?.addEventListener('click', () => setInclinationBoost(1.5));
+    btnIncBoost2x?.addEventListener('click', () => setInclinationBoost(2.0));
+
     // 探査機および参照境界線の表示/非表示トグル（デフォルトOFF）
     const btnToggleProbes = document.getElementById('btn-toggle-probes');
     const badgeToggleProbes = document.getElementById('badge-toggle-probes');
@@ -6908,6 +7190,83 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
   .comet-tail-group {
     pointer-events: none;
+  }
+
+  /* 3D軌道傾斜・高度ポール・黄道面フットプリント・交点線レイヤー */
+  .inclination-guides-layer {
+    pointer-events: none;
+  }
+
+  /* 高度ドロップライン（垂直ステム線） */
+  .inc-stem {
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+  }
+
+  /* 黄道面フットプリント影・ドット */
+  .inc-footprint {
+    vector-effect: non-scaling-stroke;
+    stroke-width: 0.8;
+  }
+
+  /* 選択天体の黄道面交点線 (Line of Nodes) */
+  .nodes-axis-line {
+    stroke: rgba(251, 191, 36, 0.72);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 3;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .node-marker {
+    pointer-events: none;
+  }
+
+  .node-marker .node-marker-bg {
+    fill: #0c1326;
+    stroke: #fbbf24;
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .node-marker.desc-node .node-marker-bg {
+    stroke: #38bdf8;
+  }
+
+  .node-marker .node-symbol {
+    fill: #fbbf24;
+    font-size: 8px;
+    font-weight: 700;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-family: var(--font-sans);
+  }
+
+  .node-marker.desc-node .node-symbol {
+    fill: #38bdf8;
+  }
+
+  .node-marker .node-label {
+    fill: #cbd5e1;
+    font-size: 8px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    text-shadow: 0 0 3px rgba(4, 7, 17, 0.95);
+  }
+
+  /* 選択天体の高度情報バッジ */
+  .elevation-badge-bg {
+    fill: rgba(12, 19, 38, 0.88);
+    stroke: rgba(56, 189, 248, 0.55);
+    stroke-width: 1;
+  }
+
+  .elevation-badge-text {
+    fill: #e2e8f0;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: central;
   }
 
   /* 天体ノード */

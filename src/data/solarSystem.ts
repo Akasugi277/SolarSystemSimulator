@@ -141,6 +141,8 @@ export interface PlanetData {
   eccentricity: number;
   /** 黄道面に対する軌道傾斜角（度） */
   inclinationDeg: number;
+  /** J2000.0時点の昇交点黄経（度） */
+  ascendingNodeLongitudeDeg: number;
   /** 公転周期（地球日・負の値は逆行公転を表す） */
   orbitalPeriodDays: number;
   /** 自転周期（時間・負の値は逆行自転） */
@@ -351,6 +353,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 1407.6,
     meanLongitudeDeg: 252.25,
     perihelionLongitudeDeg: 77.46,
+    ascendingNodeLongitudeDeg: 48.33,
     scaleConfig: {
       orbitRadiusPx: { inner: 82, outer: 26, tno: 12 },
       bodySizePx: { inner: 5.8, outer: 2.2, tno: 1.2 },
@@ -413,6 +416,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: -5832.5,
     meanLongitudeDeg: 181.98,
     perihelionLongitudeDeg: 131.53,
+    ascendingNodeLongitudeDeg: 76.68,
     scaleConfig: {
       orbitRadiusPx: { inner: 150, outer: 44, tno: 19 },
       bodySizePx: { inner: 7.8, outer: 2.8, tno: 1.4 },
@@ -469,6 +473,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 23.93,
     meanLongitudeDeg: 100.46,
     perihelionLongitudeDeg: 102.95,
+    ascendingNodeLongitudeDeg: 0.0,
     scaleConfig: {
       orbitRadiusPx: { inner: 235, outer: 66, tno: 27 },
       bodySizePx: { inner: 8.6, outer: 3.2, tno: 1.6 },
@@ -552,6 +557,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 24.62,
     meanLongitudeDeg: 355.45,
     perihelionLongitudeDeg: 336.04,
+    ascendingNodeLongitudeDeg: 49.56,
     scaleConfig: {
       orbitRadiusPx: { inner: 335, outer: 92, tno: 36 },
       bodySizePx: { inner: 7.0, outer: 2.6, tno: 1.4 },
@@ -637,6 +643,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 9.07,
     meanLongitudeDeg: 153.89,
     perihelionLongitudeDeg: 154.79,
+    ascendingNodeLongitudeDeg: 80.33,
     scaleConfig: {
       orbitRadiusPx: { inner: 435, outer: 122, tno: 46 },
       bodySizePx: { inner: 5.8, outer: 4.2, tno: 1.5 },
@@ -695,6 +702,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 9.93,
     meanLongitudeDeg: 34.40,
     perihelionLongitudeDeg: 14.75,
+    ascendingNodeLongitudeDeg: 100.46,
     scaleConfig: {
       orbitRadiusPx: { inner: 540, outer: 202, tno: 76 },
       bodySizePx: { inner: 14.5, outer: 12.2, tno: 3.8 },
@@ -816,6 +824,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 10.7,
     meanLongitudeDeg: 49.94,
     perihelionLongitudeDeg: 92.43,
+    ascendingNodeLongitudeDeg: 113.67,
     scaleConfig: {
       orbitRadiusPx: { inner: 920, outer: 308, tno: 112 },
       bodySizePx: { inner: 11.2, outer: 11.0, tno: 3.5 },
@@ -925,6 +934,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: -17.24,
     meanLongitudeDeg: 313.23,
     perihelionLongitudeDeg: 170.96,
+    ascendingNodeLongitudeDeg: 74.01,
     scaleConfig: {
       orbitRadiusPx: { inner: 1080, outer: 402, tno: 152 },
       bodySizePx: { inner: 9.5, outer: 9.2, tno: 3.4 },
@@ -1033,6 +1043,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 16.11,
     meanLongitudeDeg: 304.88,
     perihelionLongitudeDeg: 44.97,
+    ascendingNodeLongitudeDeg: 131.78,
     scaleConfig: {
       orbitRadiusPx: { inner: 1240, outer: 482, tno: 205 },
       bodySizePx: { inner: 9.5, outer: 9.0, tno: 9.4 },
@@ -1131,6 +1142,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 13.19,
     meanLongitudeDeg: 106.50,
     perihelionLongitudeDeg: 268.80,
+    ascendingNodeLongitudeDeg: 268.72,
     scaleConfig: {
       orbitRadiusPx: { inner: 1340, outer: 660, tno: 255 },
       bodySizePx: { inner: 4.5, outer: 4.2, tno: 5.0 },
@@ -1179,6 +1191,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: -153.29,
     meanLongitudeDeg: 238.93,
     perihelionLongitudeDeg: 224.07,
+    ascendingNodeLongitudeDeg: 110.30,
     scaleConfig: {
       orbitRadiusPx: { inner: 1400, outer: 542, tno: 295 },
       bodySizePx: { inner: 5.5, outer: 6.0, tno: 6.4 },
@@ -1276,6 +1289,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 3.915,
     meanLongitudeDeg: 205.20,
     perihelionLongitudeDeg: 121.79,
+    ascendingNodeLongitudeDeg: 122.02,
     scaleConfig: {
       orbitRadiusPx: { inner: 1480, outer: 750, tno: 340 },
       bodySizePx: { inner: 5.0, outer: 4.5, tno: 5.6 },
@@ -1346,6 +1360,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 17.68,
     meanLongitudeDeg: 251.40,
     perihelionLongitudeDeg: 15.15,
+    ascendingNodeLongitudeDeg: 188.80,
     scaleConfig: {
       orbitRadiusPx: { inner: 1540, outer: 790, tno: 385 },
       bodySizePx: { inner: 4.5, outer: 4.2, tno: 5.2 },
@@ -1405,6 +1420,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 22.83,
     meanLongitudeDeg: 165.40,
     perihelionLongitudeDeg: 79.36,
+    ascendingNodeLongitudeDeg: 79.62,
     scaleConfig: {
       orbitRadiusPx: { inner: 1620, outer: 830, tno: 430 },
       bodySizePx: { inner: 5.0, outer: 4.5, tno: 5.5 },
@@ -1452,6 +1468,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 22.40,
     meanLongitudeDeg: 291.50,
     perihelionLongitudeDeg: 213.90,
+    ascendingNodeLongitudeDeg: 336.85,
     scaleConfig: {
       orbitRadiusPx: { inner: 1700, outer: 880, tno: 480 },
       bodySizePx: { inner: 5.0, outer: 4.5, tno: 5.5 },
@@ -1500,6 +1517,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 25.9,
     meanLongitudeDeg: 36.02,
     perihelionLongitudeDeg: 151.64,
+    ascendingNodeLongitudeDeg: 35.88,
     scaleConfig: {
       orbitRadiusPx: { inner: 1780, outer: 920, tno: 525 },
       bodySizePx: { inner: 5.5, outer: 5.0, tno: 6.3 },
@@ -1570,6 +1588,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 10.27,
     meanLongitudeDeg: 93.33,
     perihelionLongitudeDeg: 96.12,
+    ascendingNodeLongitudeDeg: 144.55,
     scaleConfig: {
       orbitRadiusPx: { inner: 2600, outer: 1800, tno: 1420 },
       bodySizePx: { inner: 4.5, outer: 4.5, tno: 5.6 },
@@ -1604,6 +1623,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 15.9,
     meanLongitudeDeg: 240.0,
     perihelionLongitudeDeg: 70.0,
+    ascendingNodeLongitudeDeg: 71.05,
     scaleConfig: {
       orbitRadiusPx: { inner: 1400, outer: 720, tno: 365 },
       bodySizePx: { inner: 2.2, outer: 2.4, tno: 3.2 },
@@ -1637,6 +1657,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 14.38,
     meanLongitudeDeg: 60.0,
     perihelionLongitudeDeg: 280.0,
+    ascendingNodeLongitudeDeg: 216.09,
     scaleConfig: {
       orbitRadiusPx: { inner: 1510, outer: 780, tno: 382 },
       bodySizePx: { inner: 2.2, outer: 2.4, tno: 3.2 },
@@ -1685,6 +1706,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 6.34,
     meanLongitudeDeg: 122.0,
     perihelionLongitudeDeg: 6.0,
+    ascendingNodeLongitudeDeg: 97.40,
     scaleConfig: {
       orbitRadiusPx: { inner: 1520, outer: 785, tno: 383 },
       bodySizePx: { inner: 2.2, outer: 2.4, tno: 3.2 },
@@ -1718,6 +1740,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 8.12,
     meanLongitudeDeg: 29.0,
     perihelionLongitudeDeg: 305.0,
+    ascendingNodeLongitudeDeg: 54.34,
     scaleConfig: {
       orbitRadiusPx: { inner: 1530, outer: 788, tno: 384 },
       bodySizePx: { inner: 2.0, outer: 2.2, tno: 2.6 },
@@ -1751,6 +1774,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 56.1,
     meanLongitudeDeg: 81.0,
     perihelionLongitudeDeg: 110.0,
+    ascendingNodeLongitudeDeg: 23.91,
     scaleConfig: {
       orbitRadiusPx: { inner: 1750, outer: 920, tno: 435 },
       bodySizePx: { inner: 2.2, outer: 2.4, tno: 3.1 },
@@ -1786,6 +1810,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 11.08,
     meanLongitudeDeg: 334.6,
     perihelionLongitudeDeg: 161.1,
+    ascendingNodeLongitudeDeg: 334.57,
     scaleConfig: {
       // 近日点 0.336 AU (水星の内側) 〜 遠日点 4.09 AU (小惑星帯外縁・木星の内側)
       orbitRadiusPx: { inner: 278, outer: 88, tno: 36 },
@@ -1821,6 +1846,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 12.40,
     meanLongitudeDeg: 118.5,
     perihelionLongitudeDeg: 12.8,
+    ascendingNodeLongitudeDeg: 50.15,
     scaleConfig: {
       // 近日点 1.243 AU (地球と火星の間) 〜 遠日点 5.68 AU (木星軌道のすぐ外側)
       orbitRadiusPx: { inner: 418, outer: 158, tno: 62 },
@@ -1856,6 +1882,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 9.5,
     meanLongitudeDeg: 242.0,
     perihelionLongitudeDeg: 172.5,
+    ascendingNodeLongitudeDeg: 195.40,
     scaleConfig: {
       // 近日点 1.013 AU (地球軌道付近) 〜 遠日点 5.99 AU (木星軌道の外側)
       orbitRadiusPx: { inner: 402, outer: 162, tno: 65 },
@@ -1891,6 +1918,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 52.8,
     meanLongitudeDeg: 28.0,
     perihelionLongitudeDeg: 170.0,
+    ascendingNodeLongitudeDeg: 58.42,
     scaleConfig: {
       // 近日点 0.586 AU (金星の内側) 〜 遠日点 35.08 AU (海王星の外側)
       orbitRadiusPx: { inner: 485, outer: 315, tno: 148 },
@@ -1926,6 +1954,7 @@ export const PLANETS_DATA: PlanetData[] = [
     rotationPeriodHours: 41.0,
     meanLongitudeDeg: 134.0,
     perihelionLongitudeDeg: 153.0,
+    ascendingNodeLongitudeDeg: 139.38,
     scaleConfig: {
       // 近日点 0.960 AU (地球軌道付近) 〜 遠日点 51.22 AU (カイパーベルト・冥王星の外側)
       orbitRadiusPx: { inner: 560, outer: 410, tno: 240 },
