@@ -180,7 +180,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       <div class="brand-area">
         <div class="brand-icon" aria-hidden="true">☉</div>
         <div class="brand-titles">
-          <h1>SOLAR SYSTEM SIMULATOR</h1>
+          <h1>
+            SOLAR SYSTEM SIMULATOR
+            <span class="app-version-pill" title="アプリケーションバージョン v0.2.0">v0.2.0</span>
+          </h1>
           <p class="subtitle">太陽系軌道早見シミュレーター（8惑星・準惑星・外縁天体・5彗星）</p>
         </div>
       </div>
@@ -451,9 +454,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       <div class="drawer-section">
         <span class="drawer-label">3D軌道傾斜・高度ポールの表示</span>
         <div class="drawer-switch-list">
-          <button type="button" id="btn-toggle-inclination-guides" class="drawer-switch-btn active" title="3D視点時に黄道面からの高低差ポール、足元フットプリント、交点線を表示">
+          <button type="button" id="btn-toggle-inclination-guides" class="drawer-switch-btn" title="3D視点時に黄道面からの高低差ポール、足元フットプリント、交点線を表示">
             <span>📐 3D高度ポール・交点線の表示</span>
-            <span id="badge-toggle-inclination-guides" class="switch-state">ON</span>
+            <span id="badge-toggle-inclination-guides" class="switch-state">OFF</span>
           </button>
         </div>
         <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">高度ポールの表示対象</div>
@@ -467,10 +470,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         </div>
         <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">軌道傾斜角の視覚的強調倍率</div>
         <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="軌道傾斜の強調倍率">
-          <button type="button" id="btn-inc-boost-1x" class="toggle-btn" title="実際の天文学通りの傾斜角で表示">
+          <button type="button" id="btn-inc-boost-1x" class="toggle-btn active" title="実際の天文学通りの傾斜角で表示（デフォルト）">
             実角度 (1.0x)
           </button>
-          <button type="button" id="btn-inc-boost-15x" class="toggle-btn active" title="傾斜を1.5倍に強調して立体感を際立たせる">
+          <button type="button" id="btn-inc-boost-15x" class="toggle-btn" title="傾斜を1.5倍に強調して立体感を際立たせる">
             強調 (1.5x)
           </button>
           <button type="button" id="btn-inc-boost-2x" class="toggle-btn" title="傾斜を2.0倍にダイナミック強調">
@@ -503,6 +506,34 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             <span class="legend-line" style="border-top: 2px dotted #7dd3fc;"></span>
             <span>探査機の周回軌道 (▲ 正四面体) / 静止参照境界 (◌)</span>
           </div>
+        </div>
+      </div>
+
+      <!-- 7. アプリケーション・バージョン情報 -->
+      <div class="drawer-section drawer-about-section">
+        <span class="drawer-label">アプリケーション情報</span>
+        <div class="app-version-card">
+          <div class="app-version-row">
+            <strong class="app-version-title">SOLAR SYSTEM SIMULATOR</strong>
+            <span class="app-version-badge">v0.2.0</span>
+          </div>
+          <div class="app-version-details">
+            <div class="app-version-detail-item">
+              <span class="detail-label">歴期基準:</span>
+              <span class="detail-val">J2000.0 (JD 2451545.0)</span>
+            </div>
+            <div class="app-version-detail-item">
+              <span class="detail-label">描画エンジン:</span>
+              <span class="detail-val">WebGL 3D (GLSL) ＋ SVG</span>
+            </div>
+            <div class="app-version-detail-item">
+              <span class="detail-label">アニメーション:</span>
+              <span class="detail-val">GSAP 3.12 (Ticker & Inertia)</span>
+            </div>
+          </div>
+          <p class="app-version-desc">
+            太陽・8惑星・公認準惑星・外縁天体・周期彗星のケプラー軌道精密シミュレーター。実写観測データに基づく高解像度テクスチャ、3Dオービット回転、探査機軌道に対応。
+          </p>
         </div>
       </div>
     </div>
@@ -1368,12 +1399,46 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     <!-- 左下フローティング：ズームコントロール＆3D回転・操作切替 -->
     <div class="hud-bottom-left">
       <div class="hud-zoom-controls">
-        <button type="button" id="btn-toggle-drag-mode" class="hud-reset-btn drag-mode-btn" title="マウスドラッグ操作: 移動中（クリックで3D回転に切替 / 右ドラッグまたはShift+ドラッグで常時回転可能）">
-          ❖ 移動
-        </button>
-        <button type="button" id="btn-quick-toggle-3d" class="hud-reset-btn quick-3d-btn" title="2D真上視点と3D斜めチルト視点を切り替えます">
-          3D視点
-        </button>
+        <!-- マウスドラッグ操作モード: 移動 ⇔ 3D回転 -->
+        <div class="hud-btn-group" role="group" aria-label="ドラッグ操作モード">
+          <button
+            type="button"
+            id="btn-drag-mode-pan"
+            class="hud-group-btn active"
+            title="マウス左ドラッグ: カメラ平行移動（デフォルト）"
+          >
+            ❖ 移動
+          </button>
+          <button
+            type="button"
+            id="btn-drag-mode-orbit"
+            class="hud-group-btn"
+            title="マウス左ドラッグ: 太陽系の3D全方位回転（右ドラッグまたはShift+ドラッグでも常時回転可能）"
+          >
+            🖱️ 3D回転
+          </button>
+        </div>
+
+        <!-- カメラ視点: 2D真上 ⇔ 3D斜めチルト -->
+        <div class="hud-btn-group" role="group" aria-label="カメラ視点">
+          <button
+            type="button"
+            id="btn-quick-view-2d"
+            class="hud-group-btn active"
+            title="2D真上俯瞰視点 (Pitch 90°)"
+          >
+            2D
+          </button>
+          <button
+            type="button"
+            id="btn-quick-view-3d"
+            class="hud-group-btn"
+            title="3D斜めチルト視点 (Pitch 26°)"
+          >
+            3D
+          </button>
+        </div>
+
         <button type="button" id="btn-zoom-in" class="hud-icon-btn" title="ズームイン (拡大)">＋</button>
         <button type="button" id="btn-zoom-out" class="hud-icon-btn" title="ズームアウト (縮小)">－</button>
         <button type="button" id="btn-reset-rotation" class="hud-reset-btn" title="回転角度をリセットして真上視点に戻す">
@@ -1662,9 +1727,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       highlightDwarfs: false,
       highlightComets: false,
       showProbesAndBoundaries: false, // 探査機および参照境界線の表示（デフォルトOFF）
-      showInclinationGuides: true, // 3D軌道傾斜・高度ポールの表示（デフォルトON）
+      showInclinationGuides: false, // 3D軌道傾斜・高度ポールの表示（デフォルトOFF）
       incGuideMode: 'selected' as 'selected' | 'all', // 高度ポールの表示対象（'selected': 選択天体のみ推奨, 'all': 全天体一括）
-      inclinationBoost: 1.5, // 軌道傾斜の視覚的強調倍率（1.0x / 1.5x / 2.0x、デフォルト1.5x推奨）
+      inclinationBoost: 1.0, // 軌道傾斜の視覚的強調倍率（デフォルト: 1.0x 実角度）
       activeZone: 'inner' as ScaleZone,
       isMoonSystemView: false,
       moonViewPlanetId: 'jupiter',
@@ -6420,20 +6485,30 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     // 2D真上視点 ⇔ 3D斜めチルト視点（画面左下のクイックボタンとも同期）
     const btnView2d = document.getElementById('btn-view-2d');
     const btnView3d = document.getElementById('btn-view-3d');
-    const btnQuickToggle3d = document.getElementById('btn-quick-toggle-3d');
-    const btnToggleDragMode = document.getElementById('btn-toggle-drag-mode');
+    const btnQuickView2d = document.getElementById('btn-quick-view-2d');
+    const btnQuickView3d = document.getElementById('btn-quick-view-3d');
+    const btnDragModePan = document.getElementById('btn-drag-mode-pan');
+    const btnDragModeOrbit = document.getElementById('btn-drag-mode-orbit');
     const btnResetRotation = document.getElementById('btn-reset-rotation');
 
     function sync3dViewUi(is3d: boolean) {
-      if (btnQuickToggle3d) {
-        btnQuickToggle3d.textContent = is3d ? '2D視点' : '3D視点';
-        btnQuickToggle3d.classList.toggle('active', is3d);
-      }
+      btnQuickView3d?.classList.toggle('active', is3d);
+      btnQuickView2d?.classList.toggle('active', !is3d);
       btnView3d?.classList.toggle('active', is3d);
       btnView2d?.classList.toggle('active', !is3d);
     }
 
-    btnView2d?.addEventListener('click', () => {
+    function setDragMode(mode: 'pan' | 'orbit') {
+      simState.dragMode = mode;
+      const isOrbit = mode === 'orbit';
+      btnDragModeOrbit?.classList.toggle('active', isOrbit);
+      btnDragModePan?.classList.toggle('active', !isOrbit);
+    }
+
+    btnDragModePan?.addEventListener('click', () => setDragMode('pan'));
+    btnDragModeOrbit?.addEventListener('click', () => setDragMode('orbit'));
+
+    const apply2dView = () => {
       sync3dViewUi(false);
       gsap.to(simState, {
         cameraPitchDeg: 90,
@@ -6441,8 +6516,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         duration: 0.85,
         ease: 'power3.inOut',
       });
-    });
-    btnView3d?.addEventListener('click', () => {
+    };
+
+    const apply3dView = () => {
       sync3dViewUi(true);
       gsap.to(simState, {
         cameraPitchDeg: 26,
@@ -6450,27 +6526,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         duration: 0.85,
         ease: 'power3.inOut',
       });
-    });
-    btnQuickToggle3d?.addEventListener('click', () => {
-      const willBe3d = simState.cameraPitchDeg > 55; // 現在真上付近なら3Dへ、3Dなら2Dへ
-      sync3dViewUi(willBe3d);
-      gsap.to(simState, {
-        cameraPitchDeg: willBe3d ? 26 : 90,
-        tiltY: willBe3d ? 0.44 : 1.0,
-        duration: 0.85,
-        ease: 'power3.inOut',
-      });
-    });
+    };
 
-    btnToggleDragMode?.addEventListener('click', () => {
-      simState.dragMode = simState.dragMode === 'orbit' ? 'pan' : 'orbit';
-      const isOrbit = simState.dragMode === 'orbit';
-      btnToggleDragMode.classList.toggle('active', isOrbit);
-      btnToggleDragMode.textContent = isOrbit ? '🖱️ 3D回転' : '❖ 移動';
-      btnToggleDragMode.title = isOrbit
-        ? 'マウスドラッグ操作: 3D回転中（クリックで移動に切替）'
-        : 'マウスドラッグ操作: 移動中（クリックで3D回転に切替 / 右ドラッグまたはShift+ドラッグで常時回転可能）';
-    });
+    btnView2d?.addEventListener('click', apply2dView);
+    btnQuickView2d?.addEventListener('click', apply2dView);
+
+    btnView3d?.addEventListener('click', apply3dView);
+    btnQuickView3d?.addEventListener('click', apply3dView);
 
     btnResetRotation?.addEventListener('click', () => {
       sync3dViewUi(false);
@@ -6794,6 +6856,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const newPitch = Math.max(12, Math.min(90, dragStartPitch + deltaY * 0.32));
         simState.cameraPitchDeg = newPitch;
         simState.tiltY = Math.sin(newPitch * DEG_TO_RAD);
+        sync3dViewUi(newPitch <= 55);
 
         svgEl.style.cursor = 'grabbing';
         return;
@@ -6839,13 +6902,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             ease: 'power2.out',
             onUpdate: () => {
               simState.tiltY = Math.sin(simState.cameraPitchDeg * DEG_TO_RAD);
+              sync3dViewUi(simState.cameraPitchDeg <= 55);
             },
           });
         }
 
         isDragging = false;
         isRotating = false;
-        svgEl.style.cursor = 'grab';
+        svgEl.style.cursor = simState.dragMode === 'orbit' ? 'grab' : 'default';
       }
     }
 
@@ -7260,6 +7324,22 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     font-weight: 700;
     letter-spacing: 0.07em;
     color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .app-version-pill {
+    display: inline-block;
+    font-size: 0.58rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    padding: 0.06rem 0.38rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.16);
+    border: 1px solid rgba(56, 189, 248, 0.42);
+    color: #38bdf8;
+    letter-spacing: 0.02em;
   }
 
   .brand-titles .subtitle {
@@ -7584,6 +7664,73 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
   .legend-line.comet-line {
     border-top: 2px dashed #2dd4bf;
+  }
+
+  /* アプリケーション情報カード */
+  .app-version-card {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+    padding: 0.7rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .app-version-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .app-version-title {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #f1f5f9;
+  }
+
+  .app-version-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    padding: 0.08rem 0.45rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    color: #38bdf8;
+  }
+
+  .app-version-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.4rem 0.55rem;
+    background: rgba(2, 6, 23, 0.45);
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+
+  .app-version-detail-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: #94a3b8;
+  }
+
+  .app-version-detail-item .detail-val {
+    font-family: var(--font-mono);
+    color: #e2e8f0;
+    font-weight: 500;
+  }
+
+  .app-version-desc {
+    font-size: 0.66rem;
+    color: #94a3b8;
+    line-height: 1.45;
+    margin: 0;
   }
 
   /* 下段：天体クイック選択バー（横スクロール対応） */
@@ -8204,6 +8351,46 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     gap: 0.38rem;
   }
 
+  .hud-btn-group {
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-panel);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .hud-group-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    height: 28px;
+    padding: 0 0.52rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .hud-group-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .hud-group-btn.active {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: var(--accent-cyan);
+    color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  }
+
   .hud-icon-btn,
   .hud-reset-btn {
     background: var(--bg-panel);
@@ -8235,14 +8422,6 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   .hud-reset-btn:hover {
     border-color: var(--border-highlight);
     background: rgba(30, 41, 59, 0.85);
-  }
-
-  .quick-3d-btn.active,
-  .drag-mode-btn.active {
-    border-color: var(--accent-cyan);
-    background: rgba(56, 189, 248, 0.22);
-    color: #38bdf8;
-    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
   }
 
   /* 右側天体詳細パネル（PC表示・説明文のテキスト選択を許可） */
