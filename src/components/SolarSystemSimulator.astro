@@ -1308,6 +1308,14 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         >
           🚀 探査機・境界線: <span id="badge-ms-toggle-probes">OFF</span>
         </button>
+        <button
+          type="button"
+          id="btn-ms-show-detail"
+          class="ms-toggle-probes-btn ms-detail-toggle-btn"
+          title="天体の詳細・解説パネルを再表示します"
+        >
+          📖 解説を表示
+        </button>
       </div>
       <div class="ms-targets-scroll">
         {
@@ -1389,7 +1397,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
             <span id="detail-category" class="detail-category">内惑星 / 地球型惑星（岩石惑星）</span>
           </div>
         </div>
-        <button type="button" id="btn-close-detail" class="btn-close-detail" title="詳細パネルを閉じて縮尺全体に戻る">
+        <button type="button" id="btn-close-detail" class="btn-close-detail" title="解説パネルを閉じる">
           ✕
         </button>
       </div>
@@ -3361,6 +3369,13 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       const bodyDiameterKm = isSun ? sunData.diameterKm : planet!.diameterKm;
       const interior = isSun ? sunData.interiorStructure : planet?.interiorStructure;
 
+      // 中央天体をクリックしたときも解説パネルを再表示
+      msCentralPlanetGroupEl.style.cursor = 'pointer';
+      msCentralPlanetGroupEl.onclick = (e) => {
+        e.stopPropagation();
+        animateDetailPanel(true);
+      };
+
       const sphereClipCircleEl = document.getElementById('ms-sphere-clip-circle');
       if (sphereClipCircleEl) {
         sphereClipCircleEl.setAttribute('r', String(centralR));
@@ -5080,6 +5095,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
         function toggleMoonHighlight() {
           simState.highlightedMoonId = simState.highlightedMoonId === m.id ? '' : m.id;
+          // 衛星選択時に解説パネルが閉じている場合は自動的に開く
+          animateDetailPanel(true);
           if (detailMoonsListEl) {
             detailMoonsListEl.querySelectorAll<HTMLElement>('[data-moon-card-id]').forEach((card) => {
               const active = card.dataset.moonCardId === simState.highlightedMoonId;
@@ -6305,10 +6322,16 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     // 5. 詳細パネルの閉じるボタン・縮尺基準リセットボタン
     document.getElementById('btn-close-detail')?.addEventListener('click', () => {
       if (simState.isMoonSystemView) {
-        closeMoonSystemView({ keepPlanetSelected: false });
+        // 天体の拡大ビュー表示中は、拡大ビューを閉じることなく解説パネルのみをスライド収納
+        animateDetailPanel(false);
       } else {
         selectCelestialBody('overview');
       }
+    });
+
+    // 拡大ビュー内の「📖 解説を表示」ボタン
+    document.getElementById('btn-ms-show-detail')?.addEventListener('click', () => {
+      animateDetailPanel(true);
     });
     document.getElementById('btn-reset-camera')?.addEventListener('click', () => {
       if (simState.isMoonSystemView) {
@@ -8423,6 +8446,19 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     border-color: rgba(56, 189, 248, 0.85);
     background: rgba(56, 189, 248, 0.18);
     color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  }
+
+  .ms-detail-toggle-btn {
+    border-color: rgba(56, 189, 248, 0.45);
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+  }
+
+  .ms-detail-toggle-btn:hover {
+    border-color: rgba(56, 189, 248, 0.8);
+    background: rgba(56, 189, 248, 0.22);
+    color: #ffffff;
     box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
   }
 
