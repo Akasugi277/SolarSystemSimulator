@@ -1365,14 +1365,20 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       </div>
     </div>
 
-    <!-- 左下フローティング：ズームコントロール＆2D/3D視点クイック切替 -->
+    <!-- 左下フローティング：ズームコントロール＆3D回転・操作切替 -->
     <div class="hud-bottom-left">
       <div class="hud-zoom-controls">
+        <button type="button" id="btn-toggle-drag-mode" class="hud-reset-btn drag-mode-btn" title="マウスドラッグ操作: 移動中（クリックで3D回転に切替 / 右ドラッグまたはShift+ドラッグで常時回転可能）">
+          ❖ 移動
+        </button>
         <button type="button" id="btn-quick-toggle-3d" class="hud-reset-btn quick-3d-btn" title="2D真上視点と3D斜めチルト視点を切り替えます">
           3D視点
         </button>
         <button type="button" id="btn-zoom-in" class="hud-icon-btn" title="ズームイン (拡大)">＋</button>
         <button type="button" id="btn-zoom-out" class="hud-icon-btn" title="ズームアウト (縮小)">－</button>
+        <button type="button" id="btn-reset-rotation" class="hud-reset-btn" title="回転角度をリセットして真上視点に戻す">
+          回転リセット
+        </button>
         <button type="button" id="btn-reset-camera" class="hud-reset-btn" title="カメラ位置とズームを現在の縮尺基準に戻す">
           縮尺リセット
         </button>
@@ -1646,6 +1652,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       direction: 1,
       speedDaysPerSec: 0.1,
       tiltY: 1.0,
+      cameraYawDeg: 0, // 水平回転角（方位角）: 0°〜360°
+      cameraPitchDeg: 90, // 垂直仰角（ピッチ）: 12°〜90° (90°で真上2D、約26°で3D斜め)
+      dragMode: 'pan' as 'orbit' | 'pan', // マウスドラッグ操作モード（デフォルト: 'pan' 平行移動, 'orbit': 3D回転）
       auRatioBlend: 0.0,
       showMoons: true,
       showComets: true,
@@ -2088,7 +2097,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       inclinationDeg: number,
       ascendingNodeDeg: number,
       tiltY: number,
-      inclinationBoost: number = 1.0
+      inclinationBoost: number = 1.0,
+      yawDeg: number = 0
     ): { x: number; y: number; eclipticY: number; zPx: number; sin2D: number } {
       const semiMinorPx = semiMajorPx * Math.sqrt(Math.max(0.01, 1 - displayEccentricity * displayEccentricity));
       const localX = semiMajorPx * (Math.cos(eccentricAnomalyRad) - displayEccentricity);
@@ -2121,21 +2131,28 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       const Y_math = xOrb * sinN + yOrb * cosI * cosN;
       const Z_math = yOrb * sinI;
 
-      // 3. SVG画面系への射影（SVGでは下向きが+Yなので Y_2d = -Y_math）
-      const y2d = -Y_math;
+      // 3. カメラ方位角（Yaw: 水平回転）の適用
+      const yawRad = yawDeg * DEG_TO_RAD;
+      const cosYaw = Math.cos(yawRad);
+      const sinYaw = Math.sin(yawRad);
+      const X_cam = X * cosYaw - Y_math * sinYaw;
+      const Y_cam = X * sinYaw + Y_math * cosYaw;
+
+      // 4. SVG画面系への射影（SVGでは下向きが+Yなので Y_2d = -Y_cam）
+      const y2d = -Y_cam;
       const eclipticY = y2d * tiltY;
 
-      // 4. 3D斜め視点（カメラが手前上空から見下ろすピッチ傾斜）
+      // 5. 3D斜め視点（カメラが手前上空から見下ろすピッチ傾斜）
       // 黄道面より上 (+Z) は画面上側 (-y)、黄道面より下 (-Z) は画面下側 (+y) へ投影
       const sinCameraPitch = Math.sqrt(Math.max(0, 1 - tiltY * tiltY));
       const screenY = eclipticY - Z_math * sinCameraPitch;
 
       return {
-        x: X,
+        x: X_cam,
         y: screenY,
         eclipticY,
         zPx: Z_math,
-        sin2D: -Y_math / Math.max(1, semiMajorPx),
+        sin2D: -Y_cam / Math.max(1, semiMajorPx),
       };
     }
 
@@ -2149,7 +2166,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       inclinationDeg: number,
       ascendingNodeDeg: number,
       tiltY: number,
-      inclinationBoost: number = 1.0
+      inclinationBoost: number = 1.0,
+      yawDeg: number = 0
     ): string {
       const steps = 96;
       const parts: string[] = [];
@@ -2163,7 +2181,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           inclinationDeg,
           ascendingNodeDeg,
           tiltY,
-          inclinationBoost
+          inclinationBoost,
+          yawDeg
         );
         parts.push(`${i === 0 ? 'M' : 'L'}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`);
       }
@@ -2190,9 +2209,11 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
     function updateSunGridAndBelts() {
       const tiltY = simState.tiltY;
+      const yawDeg = simState.cameraYawDeg;
+      const yawRad = yawDeg * DEG_TO_RAD;
       const sunR = simState.sunRadiusPx;
 
-      const sunGridKey = `${sunR.toFixed(2)}|${tiltY.toFixed(3)}|${simState.activeZone}`;
+      const sunGridKey = `${sunR.toFixed(2)}|${tiltY.toFixed(3)}|${yawDeg.toFixed(1)}|${simState.activeZone}`;
       if (sunGridKey !== lastSunGridKey) {
         lastSunGridKey = sunGridKey;
         if (sunSphereEl) sunSphereEl.setAttribute('r', sunR.toFixed(2));
@@ -2216,7 +2237,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         }
         const innerSpokeStart = Math.max(20, sunR + 12);
         for (const tick of gridTicks) {
-          const rad = -tick.deg * DEG_TO_RAD;
+          const rad = (-tick.deg - yawDeg) * DEG_TO_RAD;
           const cosA = Math.cos(rad);
           const sinA = Math.sin(rad);
           const x2 = cosA * maxRadius;
@@ -2251,7 +2272,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const ceresAuR = bodyAnimState['ceres']?.auOrbitRadiusPx ?? simState.mainBeltRadiusPx;
         const mainCenterR = lerp(simState.mainBeltRadiusPx, ceresAuR, auBlend);
         const mainWidth = simState.mainBeltWidthPx * lerp(1.0, 1.18, auBlend);
-        const mainBeltKey = `${mainCenterR.toFixed(1)}|${mainWidth.toFixed(1)}|${tiltY.toFixed(3)}|${d.toFixed(2)}|${animT.toFixed(2)}`;
+        const mainBeltKey = `${mainCenterR.toFixed(1)}|${mainWidth.toFixed(1)}|${tiltY.toFixed(3)}|${yawDeg.toFixed(1)}|${d.toFixed(2)}|${animT.toFixed(2)}`;
         if (mainBeltKey !== lastMainBeltKey) {
           lastMainBeltKey = mainBeltKey;
           if (mainBeltHaloEl) {
@@ -2264,8 +2285,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           mainBeltBandEl.setAttribute('stroke-width', mainWidth.toFixed(1));
 
           for (const p of mainBeltParticlesDom) {
-            // 反時計回り（順行）ケプラー公転 ＋ 実時間ドリフト
-            const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT;
+            // 反時計回り（順行）ケプラー公転 ＋ 実時間ドリフト ＋ カメラ方位角回転
+            const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT - yawRad;
             const cosA = Math.cos(curAngle);
             const sinA = Math.sin(curAngle);
             const eccRadialWave = Math.cos(curAngle + p.phase) * p.ecc * mainWidth;
@@ -2292,7 +2313,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         const haumeaAuR = bodyAnimState['haumea']?.auOrbitRadiusPx ?? simState.kuiperBeltRadiusPx;
         const kuiperCenterR = lerp(simState.kuiperBeltRadiusPx, haumeaAuR, auBlend);
         const kuiperWidth = simState.kuiperBeltWidthPx * lerp(1.0, 1.12, auBlend);
-        const kuiperBeltKey = `${kuiperCenterR.toFixed(1)}|${kuiperWidth.toFixed(1)}|${tiltY.toFixed(3)}|${d.toFixed(2)}|${animT.toFixed(2)}`;
+        const kuiperBeltKey = `${kuiperCenterR.toFixed(1)}|${kuiperWidth.toFixed(1)}|${tiltY.toFixed(3)}|${yawDeg.toFixed(1)}|${d.toFixed(2)}|${animT.toFixed(2)}`;
         if (kuiperBeltKey !== lastKuiperBeltKey) {
           lastKuiperBeltKey = kuiperBeltKey;
           if (kuiperBeltHaloEl) {
@@ -2305,7 +2326,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           kuiperBeltBandEl.setAttribute('stroke-width', kuiperWidth.toFixed(1));
 
           for (const p of kuiperBeltParticlesDom) {
-            const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT;
+            const curAngle = p.angle - (TAU / p.periodDays) * d - p.visualSpeed * animT - yawRad;
             const cosA = Math.cos(curAngle);
             const sinA = Math.sin(curAngle);
             const eccRadialWave = Math.cos(curAngle + p.phase) * p.ecc * kuiperWidth;
@@ -2329,6 +2350,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     function renderSolarSystem() {
       const d = simState.elapsedDays;
       const tiltY = simState.tiltY;
+      const yawDeg = simState.cameraYawDeg;
       const auBlend = simState.auRatioBlend;
 
       const invZoomLabelScale = 1 / Math.pow(Math.max(1, simState.cameraZoom), 0.55);
@@ -2375,7 +2397,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
         // 軌道パスの更新（軌道形状のパラメータが変化したときだけパスを再生成する）
         if (item.orbitEl) {
-          const orbitKey = `${displaySemiMajorPx.toFixed(1)}|${displayEcc.toFixed(4)}|${tiltY.toFixed(3)}|${p.inclinationDeg}|${simState.inclinationBoost}`;
+          const orbitKey = `${displaySemiMajorPx.toFixed(1)}|${displayEcc.toFixed(4)}|${tiltY.toFixed(3)}|${yawDeg.toFixed(1)}|${p.inclinationDeg}|${simState.inclinationBoost}`;
           if (orbitKey !== item.lastOrbitKey) {
             item.lastOrbitKey = orbitKey;
             item.orbitEl.setAttribute(
@@ -2387,7 +2409,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
                 p.inclinationDeg,
                 p.ascendingNodeLongitudeDeg,
                 tiltY,
-                simState.inclinationBoost
+                simState.inclinationBoost,
+                yawDeg
               )
             );
           }
@@ -2428,7 +2451,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           p.inclinationDeg,
           p.ascendingNodeLongitudeDeg,
           tiltY,
-          simState.inclinationBoost
+          simState.inclinationBoost,
+          yawDeg
         );
 
         const tiltAmount = 1 - tiltY;
@@ -2736,8 +2760,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           const axisR = displaySemiMajorPx * 1.25;
           const nodeRad = p.ascendingNodeLongitudeDeg * DEG_TO_RAD;
           // 黄道面上の交点線方向（昇交点方向角 nodeRad、画面系では y_flat = -sin(nodeRad)）
-          const cosN = Math.cos(nodeRad);
-          const sinN = Math.sin(nodeRad);
+          const rotatedNodeRad = (p.ascendingNodeLongitudeDeg - yawDeg) * DEG_TO_RAD;
+          const cosN = Math.cos(rotatedNodeRad);
+          const sinN = Math.sin(rotatedNodeRad);
           const xAsc = axisR * cosN;
           const yAsc = -axisR * sinN * tiltY;
           const xDesc = -axisR * cosN;
@@ -2866,6 +2891,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       });
     }
 
+    let renderStarfieldWebGl: ((yawDeg: number, pitchDeg: number, animSec: number) => void) | null = null;
+
     let lastTickerTime = gsap.ticker.time;
     gsap.ticker.add(() => {
       const nowTime = gsap.ticker.time;
@@ -2889,6 +2916,9 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
 
       renderSolarSystem();
+      if (renderStarfieldWebGl) {
+        renderStarfieldWebGl(simState.cameraYawDeg, simState.cameraPitchDeg, simState.visualAnimSec);
+      }
     });
 
     function updateSpeedHud() {
@@ -6391,6 +6421,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const btnView2d = document.getElementById('btn-view-2d');
     const btnView3d = document.getElementById('btn-view-3d');
     const btnQuickToggle3d = document.getElementById('btn-quick-toggle-3d');
+    const btnToggleDragMode = document.getElementById('btn-toggle-drag-mode');
+    const btnResetRotation = document.getElementById('btn-reset-rotation');
 
     function sync3dViewUi(is3d: boolean) {
       if (btnQuickToggle3d) {
@@ -6404,6 +6436,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     btnView2d?.addEventListener('click', () => {
       sync3dViewUi(false);
       gsap.to(simState, {
+        cameraPitchDeg: 90,
         tiltY: 1.0,
         duration: 0.85,
         ease: 'power3.inOut',
@@ -6412,16 +6445,39 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     btnView3d?.addEventListener('click', () => {
       sync3dViewUi(true);
       gsap.to(simState, {
+        cameraPitchDeg: 26,
         tiltY: 0.44,
         duration: 0.85,
         ease: 'power3.inOut',
       });
     });
     btnQuickToggle3d?.addEventListener('click', () => {
-      const willBe3d = simState.tiltY > 0.7; // 現在2Dなら3Dへ、3Dなら2Dへ
+      const willBe3d = simState.cameraPitchDeg > 55; // 現在真上付近なら3Dへ、3Dなら2Dへ
       sync3dViewUi(willBe3d);
       gsap.to(simState, {
+        cameraPitchDeg: willBe3d ? 26 : 90,
         tiltY: willBe3d ? 0.44 : 1.0,
+        duration: 0.85,
+        ease: 'power3.inOut',
+      });
+    });
+
+    btnToggleDragMode?.addEventListener('click', () => {
+      simState.dragMode = simState.dragMode === 'orbit' ? 'pan' : 'orbit';
+      const isOrbit = simState.dragMode === 'orbit';
+      btnToggleDragMode.classList.toggle('active', isOrbit);
+      btnToggleDragMode.textContent = isOrbit ? '🖱️ 3D回転' : '❖ 移動';
+      btnToggleDragMode.title = isOrbit
+        ? 'マウスドラッグ操作: 3D回転中（クリックで移動に切替）'
+        : 'マウスドラッグ操作: 移動中（クリックで3D回転に切替 / 右ドラッグまたはShift+ドラッグで常時回転可能）';
+    });
+
+    btnResetRotation?.addEventListener('click', () => {
+      sync3dViewUi(false);
+      gsap.to(simState, {
+        cameraYawDeg: 0,
+        cameraPitchDeg: 90,
+        tiltY: 1.0,
         duration: 0.85,
         ease: 'power3.inOut',
       });
@@ -6649,25 +6705,59 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
     }
 
+    // マウス・タッチ操作（3Dオービット回転 / カメラ平行移動 / ピンチズーム）
+    let isRotating = false;
+    let dragStartYaw = 0;
+    let dragStartPitch = 0;
+    let lastDragTime = 0;
+    let dragVelX = 0;
+    let dragVelY = 0;
+    let lastDragClientX = 0;
+    let lastDragClientY = 0;
+
+    svgEl?.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); // 右クリックドラッグで回転する際、コンテキストメニューを出さない
+    });
+
     svgEl?.addEventListener('pointerdown', (e) => {
       const target = e.target as Element;
       if (target.closest('.celestial-node, .ms-moon-node')) return;
 
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       svgEl.setPointerCapture(e.pointerId);
-      // ユーザー操作を優先し、進行中のカメラ移動・ズームのトゥイーンを止める
-      gsap.killTweensOf(simState, 'cameraX,cameraY,cameraZoom');
+      // ユーザー操作を優先し、進行中のカメラ移動・ズーム・回転のトゥイーンを止める
+      gsap.killTweensOf(simState, 'cameraX,cameraY,cameraZoom,cameraYawDeg,cameraPitchDeg');
 
       if (activePointers.size === 1) {
-        isDragging = true;
-        dragStartX = e.clientX;
-        dragStartY = e.clientY;
-        cameraStartX = simState.cameraX;
-        cameraStartY = simState.cameraY;
-        svgEl.style.cursor = 'grabbing';
+        // 回転モード判定：右クリック、またはShiftキー、または現在のドラッグモードが 'orbit' の場合
+        const wantsRotate = e.button === 2 || e.shiftKey || simState.dragMode === 'orbit';
+        if (wantsRotate) {
+          isRotating = true;
+          isDragging = false;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          dragStartYaw = simState.cameraYawDeg;
+          dragStartPitch = simState.cameraPitchDeg;
+          svgEl.style.cursor = 'grab';
+        } else {
+          isDragging = true;
+          isRotating = false;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          cameraStartX = simState.cameraX;
+          cameraStartY = simState.cameraY;
+          svgEl.style.cursor = 'grabbing';
+        }
+
+        lastDragClientX = e.clientX;
+        lastDragClientY = e.clientY;
+        lastDragTime = performance.now();
+        dragVelX = 0;
+        dragVelY = 0;
       } else if (activePointers.size === 2) {
         // 2本指タッチ開始：ピンチズームモードへ移行
         isDragging = false;
+        isRotating = false;
         initialPinchDist = getPinchDistance();
         initialPinchZoom = simState.cameraZoom;
       }
@@ -6677,10 +6767,35 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       if (!activePointers.has(e.pointerId) || !svgEl) return;
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+      // 慣性用のドラッグ速度を算出
+      const now = performance.now();
+      const dt = Math.max(1, now - lastDragTime);
+      dragVelX = (e.clientX - lastDragClientX) / dt;
+      dragVelY = (e.clientY - lastDragClientY) / dt;
+      lastDragClientX = e.clientX;
+      lastDragClientY = e.clientY;
+      lastDragTime = now;
+
       if (activePointers.size === 2 && initialPinchDist > 10) {
         const currentDist = getPinchDistance();
         const scaleRatio = currentDist / initialPinchDist;
         simState.cameraZoom = clampZoom(initialPinchZoom * scaleRatio);
+        return;
+      }
+
+      if (isRotating && activePointers.size === 1) {
+        const deltaX = e.clientX - dragStartX;
+        const deltaY = e.clientY - dragStartY;
+
+        // 水平回転（Yaw）: 左右ドラッグで360度全周スムーズに回転
+        simState.cameraYawDeg = normalizeDegrees(dragStartYaw - deltaX * 0.36);
+
+        // 垂直仰角（Pitch）: 上下ドラッグで仰角 12度〜90度（真上）まで滑らかに傾斜
+        const newPitch = Math.max(12, Math.min(90, dragStartPitch + deltaY * 0.32));
+        simState.cameraPitchDeg = newPitch;
+        simState.tiltY = Math.sin(newPitch * DEG_TO_RAD);
+
+        svgEl.style.cursor = 'grabbing';
         return;
       }
 
@@ -6710,7 +6825,26 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         initialPinchDist = 0;
       }
       if (activePointers.size === 0 && svgEl) {
+        // 回転ドラッグ終了時のGSAP慣性ダンピング
+        if (isRotating && Math.hypot(dragVelX, dragVelY) > 0.1) {
+          const speed = Math.min(1.8, Math.hypot(dragVelX, dragVelY));
+          const goalYaw = simState.cameraYawDeg - dragVelX * 24;
+          const goalPitch = Math.max(12, Math.min(90, simState.cameraPitchDeg + dragVelY * 20));
+          const duration = Math.min(1.1, 0.35 + speed * 0.35);
+
+          gsap.to(simState, {
+            cameraYawDeg: goalYaw,
+            cameraPitchDeg: goalPitch,
+            duration,
+            ease: 'power2.out',
+            onUpdate: () => {
+              simState.tiltY = Math.sin(simState.cameraPitchDeg * DEG_TO_RAD);
+            },
+          });
+        }
+
         isDragging = false;
+        isRotating = false;
         svgEl.style.cursor = 'grab';
       }
     }
@@ -6760,88 +6894,299 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     switchScaleZone('inner', { keepSelection: false });
     updateSpeedHud();
 
-    // --- 背景星空キャンバスの描画 ---
+    // --- 背景星空 WebGL 3D レンダラー（GLSLシェーダー搭載） ＆ 2Dフォールバック ---
     const canvas = document.getElementById('starfield-canvas') as HTMLCanvasElement | null;
     if (canvas) {
-      const ctx = canvas.getContext('2d');
-      // 星は 0〜1 の正規化座標で保持し、リサイズ時は再生成せず再描画のみ行う（ちらつき防止）
-      const stars: { nx: number; ny: number; r: number; alpha: number; color: string }[] = [];
-      let canvasCssW = 0;
-      let canvasCssH = 0;
+      let gl: WebGLRenderingContext | null = null;
+      try {
+        gl = (canvas.getContext('webgl', { alpha: false, antialias: true, powerPreference: 'high-performance' }) ||
+          canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null;
+      } catch (err) {
+        gl = null;
+      }
 
-      function initStars() {
-        const count = Math.floor((window.innerWidth * window.innerHeight) / 3800);
-        const palette = ['#ffffff', '#e0f2fe', '#fef3c7', '#cbd5e1'];
-        stars.length = 0;
-        for (let i = 0; i < count; i++) {
-          stars.push({
-            nx: Math.random(),
-            ny: Math.random(),
-            r: Math.random() * 1.35 + 0.25,
-            alpha: Math.random() * 0.75 + 0.15,
-            color: palette[Math.floor(Math.random() * palette.length)],
+      if (gl) {
+        // WebGL 3D シェーダープログラム
+        const vsSource = `
+          attribute vec3 a_position;
+          attribute vec3 a_color;
+          attribute float a_size;
+          attribute float a_phase;
+
+          uniform float u_yaw;
+          uniform float u_pitch;
+          uniform float u_time;
+          uniform vec2 u_resolution;
+
+          varying vec3 v_color;
+          varying float v_twinkle;
+
+          void main() {
+            // 方位角（Yaw: Y軸周りの水平回転）
+            float cy = cos(u_yaw);
+            float sy = sin(u_yaw);
+            vec3 posYaw = vec3(
+              a_position.x * cy - a_position.z * sy,
+              a_position.y,
+              a_position.x * sy + a_position.z * cy
+            );
+
+            // 仰角（Pitch: X軸周りのピッチ傾斜）
+            float cp = cos(u_pitch);
+            float sp = sin(u_pitch);
+            vec3 pos3d = vec3(
+              posYaw.x,
+              posYaw.y * cp - posYaw.z * sp,
+              posYaw.y * sp + posYaw.z * cp
+            );
+
+            // 透視投影（FOV 65度相当、手前にクリップ）
+            float zDist = pos3d.z + 1.85;
+            float proj = 1.6 / max(0.2, zDist);
+
+            float aspect = u_resolution.x / u_resolution.y;
+            gl_Position = vec4(pos3d.x * proj / aspect, pos3d.y * proj, -pos3d.z * 0.1, 1.0);
+
+            // シンチレーション（星の瞬き）
+            float twinkle = 0.72 + 0.28 * sin(u_time * 2.4 + a_phase);
+            v_twinkle = twinkle;
+            v_color = a_color;
+
+            // ポイントサイズ
+            gl_PointSize = max(1.2, a_size * (u_resolution.y / 900.0) * proj * twinkle);
+          }
+        `;
+
+        const fsSource = `
+          precision mediump float;
+          varying vec3 v_color;
+          varying float v_twinkle;
+
+          void main() {
+            vec2 coord = gl_PointCoord - vec2(0.5);
+            float distSq = dot(coord, coord);
+            if (distSq > 0.25) discard;
+
+            // ガウシアン風の減衰グロー光彩
+            float alpha = exp(-distSq * 9.0) * v_twinkle;
+            gl_FragColor = vec4(v_color * alpha, alpha);
+          }
+        `;
+
+        function compileShader(glCtx: WebGLRenderingContext, type: number, src: string) {
+          const shader = glCtx.createShader(type);
+          if (!shader) return null;
+          glCtx.shaderSource(shader, src);
+          glCtx.compileShader(shader);
+          if (!glCtx.getShaderParameter(shader, glCtx.COMPILE_STATUS)) {
+            glCtx.deleteShader(shader);
+            return null;
+          }
+          return shader;
+        }
+
+        const vs = compileShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const program = gl.createProgram();
+
+        if (vs && fs && program) {
+          gl.attachShader(program, vs);
+          gl.attachShader(program, fs);
+          gl.linkProgram(program);
+          gl.useProgram(program);
+
+          // 3D星空データ生成（2400個の全天恒星 ＋ 1400個の天の川銀河星雲ダスト）
+          const starCount = 3800;
+          const posData = new Float32Array(starCount * 3);
+          const colData = new Float32Array(starCount * 3);
+          const sizeData = new Float32Array(starCount);
+          const phaseData = new Float32Array(starCount);
+
+          for (let i = 0; i < starCount; i++) {
+            const isMilkyWay = i > 2400;
+            let x: number, y: number, z: number;
+
+            if (isMilkyWay) {
+              const theta = Math.random() * Math.PI * 2;
+              const r = 0.2 + Math.random() * 0.95;
+              const diskZ = (Math.random() - 0.5) * 0.22;
+              x = r * Math.cos(theta);
+              const yLocal = r * Math.sin(theta);
+              y = yLocal * 0.5 - diskZ * 0.866;
+              z = yLocal * 0.866 + diskZ * 0.5;
+            } else {
+              const u = Math.random();
+              const v = Math.random();
+              const theta = u * 2.0 * Math.PI;
+              const phi = Math.acos(2.0 * v - 1.0);
+              const r = 0.9 + Math.random() * 0.25;
+              x = r * Math.sin(phi) * Math.cos(theta);
+              y = r * Math.sin(phi) * Math.sin(theta);
+              z = r * Math.cos(phi);
+            }
+
+            posData[i * 3] = x;
+            posData[i * 3 + 1] = y;
+            posData[i * 3 + 2] = z;
+
+            const colRand = Math.random();
+            if (isMilkyWay) {
+              colData[i * 3] = 0.6;
+              colData[i * 3 + 1] = 0.72;
+              colData[i * 3 + 2] = 0.98;
+              sizeData[i] = 1.3 + Math.random() * 2.2;
+            } else if (colRand < 0.25) {
+              colData[i * 3] = 0.75; colData[i * 3 + 1] = 0.88; colData[i * 3 + 2] = 1.0;
+              sizeData[i] = 2.4 + Math.random() * 2.8;
+            } else if (colRand < 0.6) {
+              colData[i * 3] = 0.95; colData[i * 3 + 1] = 0.97; colData[i * 3 + 2] = 1.0;
+              sizeData[i] = 1.8 + Math.random() * 2.0;
+            } else if (colRand < 0.85) {
+              colData[i * 3] = 1.0; colData[i * 3 + 1] = 0.92; colData[i * 3 + 2] = 0.75;
+              sizeData[i] = 2.0 + Math.random() * 2.4;
+            } else {
+              colData[i * 3] = 1.0; colData[i * 3 + 1] = 0.65; colData[i * 3 + 2] = 0.48;
+              sizeData[i] = 2.6 + Math.random() * 3.2;
+            }
+
+            phaseData[i] = Math.random() * Math.PI * 2;
+          }
+
+          function setupAttrib(attribName: string, data: Float32Array, size: number) {
+            if (!gl || !program) return;
+            const loc = gl.getAttribLocation(program, attribName);
+            if (loc === -1) return;
+            const buf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            gl.enableVertexAttribArray(loc);
+            gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+          }
+
+          setupAttrib('a_position', posData, 3);
+          setupAttrib('a_color', colData, 3);
+          setupAttrib('a_size', sizeData, 1);
+          setupAttrib('a_phase', phaseData, 1);
+
+          const uYawLoc = gl.getUniformLocation(program, 'u_yaw');
+          const uPitchLoc = gl.getUniformLocation(program, 'u_pitch');
+          const uTimeLoc = gl.getUniformLocation(program, 'u_time');
+          const uResLoc = gl.getUniformLocation(program, 'u_resolution');
+
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // 加算合成（重なり発光）
+
+          function resizeGlCanvas() {
+            if (!canvas || !gl) return;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.floor(window.innerWidth * dpr);
+            canvas.height = Math.floor(window.innerHeight * dpr);
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+          }
+          resizeGlCanvas();
+
+          renderStarfieldWebGl = (yawDeg: number, pitchDeg: number, animSec: number) => {
+            if (!gl || !program) return;
+            gl.clearColor(0.012, 0.02, 0.048, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.useProgram(program);
+            const yawRad = yawDeg * DEG_TO_RAD;
+            const pitchRad = (pitchDeg - 90) * DEG_TO_RAD * 0.72;
+
+            if (uYawLoc) gl.uniform1f(uYawLoc, yawRad);
+            if (uPitchLoc) gl.uniform1f(uPitchLoc, pitchRad);
+            if (uTimeLoc) gl.uniform1f(uTimeLoc, animSec);
+            if (uResLoc) gl.uniform2f(uResLoc, canvas.width, canvas.height);
+
+            gl.drawArrays(gl.POINTS, 0, starCount);
+          };
+
+          let resizeTimer: number | undefined;
+          window.addEventListener('resize', () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(resizeGlCanvas, 120);
+            if (detailPanelEl && simState.selectedBodyId === 'overview') {
+              const mobile = isMobileSheetLayout();
+              gsap.set(detailPanelEl, { x: mobile ? 0 : 420, y: mobile ? 480 : 0, autoAlpha: 0 });
+            }
+          });
+        }
+      } else {
+        // WebGL 非対応環境のフォールバック (2D Canvas)
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const stars: { nx: number; ny: number; r: number; alpha: number; color: string }[] = [];
+          let canvasCssW = 0;
+          let canvasCssH = 0;
+
+          function initStars() {
+            const count = Math.floor((window.innerWidth * window.innerHeight) / 3800);
+            const palette = ['#ffffff', '#e0f2fe', '#fef3c7', '#cbd5e1'];
+            stars.length = 0;
+            for (let i = 0; i < count; i++) {
+              stars.push({
+                nx: Math.random(),
+                ny: Math.random(),
+                r: Math.random() * 1.35 + 0.25,
+                alpha: Math.random() * 0.75 + 0.15,
+                color: palette[Math.floor(Math.random() * palette.length)],
+              });
+            }
+          }
+
+          function resizeStarfield() {
+            if (!canvas || !ctx) return;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvasCssW = window.innerWidth;
+            canvasCssH = window.innerHeight;
+            canvas.width = Math.floor(canvasCssW * dpr);
+            canvas.height = Math.floor(canvasCssH * dpr);
+            canvas.style.width = `${canvasCssW}px`;
+            canvas.style.height = `${canvasCssH}px`;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            drawStars();
+          }
+
+          function drawStars() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, canvasCssW, canvasCssH);
+            const grad = ctx.createRadialGradient(
+              canvasCssW * 0.5,
+              canvasCssH * 0.5,
+              20,
+              canvasCssW * 0.5,
+              canvasCssH * 0.5,
+              Math.max(canvasCssW, canvasCssH) * 0.7
+            );
+            grad.addColorStop(0, 'rgba(15, 25, 55, 0.55)');
+            grad.addColorStop(0.5, 'rgba(6, 11, 26, 0.85)');
+            grad.addColorStop(1, 'rgba(3, 5, 14, 1)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvasCssW, canvasCssH);
+
+            for (const s of stars) {
+              ctx.globalAlpha = s.alpha;
+              ctx.fillStyle = s.color;
+              ctx.beginPath();
+              ctx.arc(s.nx * canvasCssW, s.ny * canvasCssH, s.r, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+          }
+
+          initStars();
+          resizeStarfield();
+
+          let resizeTimer: number | undefined;
+          window.addEventListener('resize', () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(resizeStarfield, 120);
           });
         }
       }
-
-      /**
-       * キャンバスサイズをデバイスピクセル比に合わせて更新し、再描画する（HiDPI対応）
-       */
-      function resizeStarfield() {
-        if (!canvas || !ctx) return;
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvasCssW = window.innerWidth;
-        canvasCssH = window.innerHeight;
-        canvas.width = Math.floor(canvasCssW * dpr);
-        canvas.height = Math.floor(canvasCssH * dpr);
-        canvas.style.width = `${canvasCssW}px`;
-        canvas.style.height = `${canvasCssH}px`;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        drawStars();
-      }
-
-      function drawStars() {
-        if (!canvas || !ctx) return;
-        ctx.clearRect(0, 0, canvasCssW, canvasCssH);
-
-        const grad = ctx.createRadialGradient(
-          canvasCssW * 0.5,
-          canvasCssH * 0.5,
-          20,
-          canvasCssW * 0.5,
-          canvasCssH * 0.5,
-          Math.max(canvasCssW, canvasCssH) * 0.7
-        );
-        grad.addColorStop(0, 'rgba(15, 25, 55, 0.55)');
-        grad.addColorStop(0.5, 'rgba(6, 11, 26, 0.85)');
-        grad.addColorStop(1, 'rgba(3, 5, 14, 1)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, canvasCssW, canvasCssH);
-
-        for (const s of stars) {
-          ctx.globalAlpha = s.alpha;
-          ctx.fillStyle = s.color;
-          ctx.beginPath();
-          ctx.arc(s.nx * canvasCssW, s.ny * canvasCssH, s.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-      }
-
-      initStars();
-      resizeStarfield();
-
-      let resizeTimer: number | undefined;
-      window.addEventListener('resize', () => {
-        // リサイズ中の連続イベントをまとめて処理（デバウンス）
-        window.clearTimeout(resizeTimer);
-        resizeTimer = window.setTimeout(resizeStarfield, 120);
-        // 画面回転・リサイズ時に非表示状態の詳細パネル待機座標を更新
-        if (detailPanelEl && simState.selectedBodyId === 'overview') {
-          const mobile = isMobileSheetLayout();
-          gsap.set(detailPanelEl, { x: mobile ? 0 : 420, y: mobile ? 480 : 0, autoAlpha: 0 });
-        }
-      });
     }
 
     // 詳細パネル内の「ライブ数値」は毎フレーム更新されるため、スクリーンリーダーへの連続通知を抑止する
@@ -7892,7 +8237,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     background: rgba(30, 41, 59, 0.85);
   }
 
-  .quick-3d-btn.active {
+  .quick-3d-btn.active,
+  .drag-mode-btn.active {
     border-color: var(--accent-cyan);
     background: rgba(56, 189, 248, 0.22);
     color: #38bdf8;
