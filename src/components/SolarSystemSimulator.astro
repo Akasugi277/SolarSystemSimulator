@@ -160,6 +160,185 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     color,
   };
 });
+
+/**
+ * 各天体の美麗ミニSVGイラストアイコン（28x28〜32x32px）を生成
+ */
+function getBodyIllustrationSvg(id: string, color: string): string {
+  if (id === 'sun') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <radialGradient id="illus-sun-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fffbeb" />
+          <stop offset="35%" stop-color="#fbbf24" />
+          <stop offset="85%" stop-color="#f97316" />
+          <stop offset="100%" stop-color="#dc2626" />
+        </radialGradient>
+      </defs>
+      <circle cx="16" cy="16" r="14" fill="#fbbf24" opacity="0.18" />
+      <g stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" opacity="0.85">
+        <line x1="16" y1="1.5" x2="16" y2="4" />
+        <line x1="16" y1="28" x2="16" y2="30.5" />
+        <line x1="1.5" y1="16" x2="4" y2="16" />
+        <line x1="28" y1="16" x2="30.5" y2="16" />
+        <line x1="5.5" y1="5.5" x2="7.5" y2="7.5" />
+        <line x1="24.5" y1="24.5" x2="26.5" y2="26.5" />
+        <line x1="5.5" y1="26.5" x2="7.5" y2="24.5" />
+        <line x1="24.5" y1="7.5" x2="26.5" y2="5.5" />
+      </g>
+      <circle cx="16" cy="16" r="9.5" fill="url(#illus-sun-grad)" />
+    </svg>`;
+  }
+  if (id === 'mercury') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="8.5" fill="#94a3b8" />
+      <circle cx="13" cy="13.5" r="2.2" fill="#64748b" opacity="0.8" />
+      <circle cx="18" cy="18.5" r="1.6" fill="#64748b" opacity="0.8" />
+      <circle cx="18" cy="11.5" r="1.2" fill="#475569" opacity="0.7" />
+      <path d="M 8.5 16 A 8.5 8.5 0 0 0 16 24.5 A 8.5 8.5 0 0 1 8.5 16" fill="#334155" opacity="0.35" />
+    </svg>`;
+  }
+  if (id === 'venus') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <radialGradient id="illus-venus-grad" cx="40%" cy="40%" r="60%">
+          <stop offset="0%" stop-color="#fef08a" />
+          <stop offset="70%" stop-color="#facc15" />
+          <stop offset="100%" stop-color="#d97706" />
+        </radialGradient>
+      </defs>
+      <circle cx="16" cy="16" r="9" fill="url(#illus-venus-grad)" />
+      <path d="M 7.5 13 Q 16 10 24.5 13" stroke="#f59e0b" stroke-width="1.8" fill="none" opacity="0.75" />
+      <path d="M 7.2 16 Q 16 13 24.8 16" stroke="#fbbf24" stroke-width="1.5" fill="none" opacity="0.8" />
+      <path d="M 7.8 19 Q 16 16 24.2 19" stroke="#b45309" stroke-width="1.6" fill="none" opacity="0.6" />
+    </svg>`;
+  }
+  if (id === 'earth') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <clipPath id="illus-earth-clip">
+          <circle cx="16" cy="16" r="9.5" />
+        </clipPath>
+      </defs>
+      <circle cx="16" cy="16" r="9.5" fill="#2563eb" />
+      <g clip-path="url(#illus-earth-clip)">
+        <path d="M 11 11 Q 13 8 16 10 Q 18 12 15 15 Q 13 16 11 14 Z" fill="#22c55e" />
+        <path d="M 18 15 Q 21 13 23 16 Q 21 20 19 19 Q 17 17 18 15 Z" fill="#16a34a" />
+        <path d="M 9 18 Q 12 17 13 20 Q 11 22 8 20 Z" fill="#15803d" />
+        <path d="M 7 13 Q 12 14 16 12 Q 21 13 25 11" stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round" />
+        <path d="M 9 20 Q 14 21 18 19 Q 22 20 24 18" stroke="#ffffff" stroke-width="1.3" fill="none" opacity="0.7" stroke-linecap="round" />
+      </g>
+    </svg>`;
+  }
+  if (id === 'mars') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <clipPath id="illus-mars-clip">
+          <circle cx="16" cy="16" r="8.5" />
+        </clipPath>
+      </defs>
+      <circle cx="16" cy="16" r="8.5" fill="#ea580c" />
+      <g clip-path="url(#illus-mars-clip)">
+        <path d="M 9 15 Q 16 13 23 16 Q 19 19 12 18 Z" fill="#991b1b" opacity="0.7" />
+        <ellipse cx="16" cy="8" rx="3.5" ry="1.4" fill="#ffffff" />
+        <ellipse cx="16" cy="24" rx="2.5" ry="1.1" fill="#ffffff" opacity="0.9" />
+      </g>
+    </svg>`;
+  }
+  if (id === 'ceres') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="7.5" fill="#9ca3af" />
+      <circle cx="14" cy="14" r="1.4" fill="#ffffff" />
+      <circle cx="18" cy="18" r="1.6" fill="#6b7280" />
+      <circle cx="12" cy="18" r="1.0" fill="#4b5563" />
+      <circle cx="14" cy="14" r="0.7" fill="#f8fafc" />
+    </svg>`;
+  }
+  if (id === 'jupiter') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <clipPath id="illus-jupiter-clip">
+          <circle cx="16" cy="16" r="10" />
+        </clipPath>
+      </defs>
+      <circle cx="16" cy="16" r="10" fill="#fed7aa" />
+      <g clip-path="url(#illus-jupiter-clip)">
+        <rect x="5" y="8" width="22" height="2.8" fill="#d97706" opacity="0.85" />
+        <rect x="5" y="12" width="22" height="2.2" fill="#b45309" opacity="0.9" />
+        <rect x="5" y="15.5" width="22" height="3" fill="#d97706" opacity="0.85" />
+        <rect x="5" y="19.5" width="22" height="2.5" fill="#92400e" opacity="0.8" />
+        <ellipse cx="20" cy="17" rx="2.6" ry="1.6" fill="#dc2626" />
+        <ellipse cx="20" cy="17" rx="1.6" ry="0.9" fill="#fca5a5" />
+      </g>
+    </svg>`;
+  }
+  if (id === 'saturn') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="16" rx="14" ry="4.5" fill="none" stroke="#fde047" stroke-width="2.5" opacity="0.45" transform="rotate(-15 16 16)" />
+      <circle cx="16" cy="16" r="7.5" fill="#facc15" />
+      <path d="M 9 15.5 Q 16 16.5 23 15.5" stroke="#ca8a04" stroke-width="1.2" fill="none" opacity="0.6" />
+      <path d="M 2 16 A 14 4.5 0 0 0 30 16" fill="none" stroke="#fef08a" stroke-width="2.5" opacity="0.95" transform="rotate(-15 16 16)" />
+      <path d="M 4 16 A 12 3.5 0 0 0 28 16" fill="none" stroke="#ca8a04" stroke-width="0.8" opacity="0.8" transform="rotate(-15 16 16)" />
+    </svg>`;
+  }
+  if (id === 'uranus') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="16" rx="3.5" ry="12" fill="none" stroke="#67e8f9" stroke-width="1.5" opacity="0.45" transform="rotate(10 16 16)" />
+      <circle cx="16" cy="16" r="8" fill="#22d3ee" />
+      <path d="M 16 4 A 3.5 12 0 0 1 16 28" fill="none" stroke="#a5f3fc" stroke-width="1.6" opacity="0.9" transform="rotate(10 16 16)" />
+    </svg>`;
+  }
+  if (id === 'neptune') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="8" fill="#3b82f6" />
+      <path d="M 9 13.5 Q 16 11.5 23 13.5" stroke="#93c5fd" stroke-width="1.2" fill="none" opacity="0.75" />
+      <path d="M 9 18 Q 16 16 23 18" stroke="#1d4ed8" stroke-width="1.4" fill="none" opacity="0.7" />
+      <ellipse cx="18" cy="15" rx="1.8" ry="1.2" fill="#1e3a8a" />
+    </svg>`;
+  }
+  if (id === 'pluto') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="7.5" fill="#cbd5e1" />
+      <path d="M 16 15 C 16 13 14 12 12.5 13.5 C 11 15 12.5 18 16 20 C 19.5 18 21 15 19.5 13.5 C 18 12 16 13 16 15 Z" fill="#f8fafc" opacity="0.85" />
+      <path d="M 9 18 Q 12 22 16 23" stroke="#94a3b8" stroke-width="1" fill="none" opacity="0.5" />
+    </svg>`;
+  }
+  if (id === 'haumea') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="16" rx="13" ry="4" fill="none" stroke="#cbd5e1" stroke-width="1" opacity="0.4" transform="rotate(-10 16 16)" />
+      <ellipse cx="16" cy="16" rx="10" ry="5.5" fill="#e2e8f0" transform="rotate(-10 16 16)" />
+      <ellipse cx="19" cy="15" rx="2" ry="1.2" fill="#94a3b8" opacity="0.5" transform="rotate(-10 16 16)" />
+    </svg>`;
+  }
+  if (id === 'makemake') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="7.5" fill="#f43f5e" />
+      <circle cx="13" cy="14" r="2" fill="#be123c" opacity="0.6" />
+      <circle cx="18" cy="18" r="1.5" fill="#be123c" opacity="0.5" />
+    </svg>`;
+  }
+  if (id === 'eris') {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="16" r="7.5" fill="#f1f5f9" />
+      <circle cx="16" cy="16" r="6.8" fill="#e2e8f0" />
+      <circle cx="14" cy="14" r="1.2" fill="#cbd5e1" />
+    </svg>`;
+  }
+  if (id.startsWith('comet') || ['halley', 'encke', 'swift_tuttle', 'churyumov_gerasimenko', 'giacobini_zinner'].includes(id)) {
+    return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M 12 18 Q 18 14 28 8 Q 23 18 14 20 Z" fill="#2dd4bf" opacity="0.35" />
+      <path d="M 12 18 Q 20 12 29 6 Q 25 15 13 19 Z" fill="#38bdf8" opacity="0.4" />
+      <circle cx="12" cy="18" r="5" fill="#5eead4" opacity="0.3" />
+      <circle cx="12" cy="18" r="2.8" fill="#ccfbf1" />
+      <circle cx="12" cy="18" r="1.4" fill="#ffffff" />
+    </svg>`;
+  }
+  return `<svg class="body-illus-svg" viewBox="0 0 32 32" aria-hidden="true">
+    <circle cx="16" cy="16" r="7" fill="${color || '#a855f7'}" />
+    <circle cx="14" cy="14" r="1.8" fill="#ffffff" opacity="0.35" />
+    <circle cx="18" cy="18" r="2" fill="#000000" opacity="0.25" />
+  </svg>`;
+}
 ---
 
 <div
@@ -174,7 +353,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
   <!-- 背景星空キャンバス -->
   <canvas id="starfield-canvas" class="starfield-canvas" aria-hidden="true"></canvas>
 
-  <!-- 上部ヘッダー＆3段階表示縮尺セレクター＋衛星系拡大専用ビューボタン＋ハンバーガーメニュー -->
+  <!-- 上部ヘッダー（スリム化された1行構成：タイトル・3段階縮尺セレクター・表示設定ボタン） -->
   <header class="top-bar">
     <div class="top-bar-row primary-row">
       <div class="brand-area">
@@ -182,20 +361,20 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
         <div class="brand-titles">
           <h1>
             SOLAR SYSTEM SIMULATOR
-            <span class="app-version-pill" title="アプリケーションバージョン v0.2.0">v0.2.0</span>
+            <span class="app-version-pill" title="アプリケーションバージョン v0.3.0">v0.3.0</span>
           </h1>
-          <p class="subtitle">太陽系軌道早見シミュレーター（8惑星・準惑星・外縁天体・5彗星）</p>
+          <p class="subtitle">太陽系軌道早見シミュレーター（8惑星・公認準惑星・外縁天体・5彗星）</p>
         </div>
       </div>
 
-      <!-- 表示縮尺（3段階：内惑星 / 外惑星 / 外縁天体 ＋ 4. 衛星系拡大専用ビュー）切り替えバー -->
-      <div class="scale-zone-selector" role="group" aria-label="表示縮尺および衛星系拡大ビュー切り替え">
+      <!-- 表示縮尺（3段階：内惑星 / 外惑星 / 外縁天体）切り替えバー -->
+      <div class="scale-zone-selector" role="group" aria-label="表示縮尺切り替え">
         <span class="bar-group-label">縮尺:</span>
         <button
           type="button"
           class="zone-btn active"
           data-scale-zone="inner"
-          title="内惑星（水星〜火星）・ケレス・外惑星基準の木星・周期彗星の近日点領域に自動調整します"
+          title="内惑星（水星〜火星）・ケレス・木星軌道まで。地球型岩石惑星の運動と公転を精密に観察"
         >
           <span class="zone-indicator inner-dot"></span>
           <span>1. 内惑星</span>
@@ -205,7 +384,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           type="button"
           class="zone-btn"
           data-scale-zone="outer"
-          title="外惑星（木星〜海王星）・外縁基準の冥王星・木星族彗星・ハレー彗星に縮尺を自動調整します"
+          title="外惑星（木星〜海王星）・外縁基準の冥王星・主要衛星に縮尺を自動調整"
         >
           <span class="zone-indicator outer-dot"></span>
           <span>2. 外惑星</span>
@@ -215,25 +394,15 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           type="button"
           class="zone-btn"
           data-scale-zone="tno"
-          title="外縁天体（海王星・冥王星型・セドナ等・長周期彗星）に縮尺を自動調整します"
+          title="外縁天体（海王星・冥王星型・カイパーベルト・セドナ等）に縮尺を自動調整"
         >
           <span class="zone-indicator tno-dot"></span>
           <span>3. 外縁天体</span>
           <small class="zone-sub-text">(海王星・冥王星等)</small>
         </button>
-        <button
-          type="button"
-          id="btn-moon-system-mode"
-          class="moon-mode-btn"
-          title="太陽・水星・金星・地球・火星・ケレス・木星・土星・天王星・海王星・冥王星・ハウメア・マケマケ・エリスの14天体と衛星軌道・近傍圏を拡大表示する専用ビューへ切り替えます"
-        >
-          <span class="zone-indicator moon-mode-dot"></span>
-          <span>4. 天体・衛星拡大</span>
-          <small class="zone-sub-text">(14天体専用ビュー)</small>
-        </button>
       </div>
 
-      <!-- 右端：すべての表示トグルを集約したハンバーガーメニューボタン -->
+      <!-- 右端：天体・縮尺・視点・表示設定・ヘルプを集約したサイドバー展開ボタン -->
       <div class="hamburger-wrapper">
         <button
           type="button"
@@ -241,299 +410,589 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
           class="hamburger-btn"
           aria-expanded="false"
           aria-controls="hamburger-menu-drawer"
-          title="視点・軌道間隔・衛星・準惑星・彗星の表示設定メニューを開く"
+          title="天体・縮尺・視点・表示切替・ヘルプの設定サイドバーを開く"
         >
           <span class="hamburger-icon" aria-hidden="true">
             <span></span>
             <span></span>
             <span></span>
           </span>
-          <span class="hamburger-label">表示設定</span>
+          <span class="hamburger-label">表示・設定</span>
         </button>
       </div>
     </div>
-
-    <!-- 下段：横スクロール可能な天体クイック選択バー -->
-    <nav class="top-bar-row celestial-nav" aria-label="天体クイック選択">
-      <button type="button" class="nav-pill active" data-target-id="overview" title="個別フォーカスを解除して現在の縮尺全体を表示">
-        <span class="pill-symbol">✦</span>
-        <span class="pill-name">縮尺全体</span>
-      </button>
-
-      <button type="button" class="nav-pill major-pill" data-target-id="sun" title="太陽を選択">
-        <span class="pill-symbol" style="color: #fbbf24;">{SUN_DATA.symbol}</span>
-        <span class="pill-name">{SUN_DATA.nameJa}</span>
-      </button>
-
-      <span class="nav-divider" aria-hidden="true"></span>
-      <span class="nav-section-tag" data-section-zone="inner">内惑星</span>
-      {
-        innerPlanets.map((planet) => (
-          <button
-            type="button"
-            class="nav-pill major-pill"
-            data-target-id={planet.id}
-            data-home-zone={planet.homeZone}
-            data-body-class={planet.bodyClass}
-          >
-            <span class="pill-symbol" style={`color: ${planet.color};`}>{planet.symbol}</span>
-            <span class="pill-name">{planet.nameJa}</span>
-            {planet.moons.length > 0 && <span class="pill-moon-count">{planet.moons.length}</span>}
-          </button>
-        ))
-      }
-
-      <span class="nav-divider" aria-hidden="true"></span>
-      <span class="nav-section-tag dwarf-tag" data-section-zone="inner">準惑星(小惑星)</span>
-      {
-        asteroidDwarfs.map((dwarf) => (
-          <button
-            type="button"
-            class="nav-pill dwarf-pill"
-            data-target-id={dwarf.id}
-            data-home-zone={dwarf.homeZone}
-            data-body-class={dwarf.bodyClass}
-          >
-            <span class="pill-symbol" style={`color: ${dwarf.color};`}>{dwarf.symbol}</span>
-            <span class="pill-name">{dwarf.nameJa}</span>
-            <span class="pill-class-badge">準</span>
-          </button>
-        ))
-      }
-
-      <span class="nav-divider" aria-hidden="true"></span>
-      <span class="nav-section-tag" data-section-zone="outer">外惑星</span>
-      {
-        outerPlanets.map((planet) => (
-          <button
-            type="button"
-            class="nav-pill major-pill"
-            data-target-id={planet.id}
-            data-home-zone={planet.homeZone}
-            data-body-class={planet.bodyClass}
-          >
-            <span class="pill-symbol" style={`color: ${planet.color};`}>{planet.symbol}</span>
-            <span class="pill-name">{planet.nameJa}</span>
-            {planet.moons.length > 0 && <span class="pill-moon-count">{planet.moons.length}</span>}
-          </button>
-        ))
-      }
-
-      <span class="nav-divider" aria-hidden="true"></span>
-      <span class="nav-section-tag plutoid-tag" data-section-zone="tno">準惑星(冥王星型)</span>
-      {
-        plutoidDwarfs.map((dwarf) => (
-          <button
-            type="button"
-            class="nav-pill dwarf-pill plutoid-pill"
-            data-target-id={dwarf.id}
-            data-home-zone={dwarf.homeZone}
-            data-body-class={dwarf.bodyClass}
-          >
-            <span class="pill-symbol" style={`color: ${dwarf.color};`}>{dwarf.symbol}</span>
-            <span class="pill-name">{dwarf.nameJa}</span>
-            <span class="pill-class-badge plutoid-badge">冥</span>
-            {dwarf.moons.length > 0 && <span class="pill-moon-count">{dwarf.moons.length}</span>}
-          </button>
-        ))
-      }
-
-      <span class="nav-divider" aria-hidden="true"></span>
-      <span class="nav-section-tag candidate-tag" data-section-zone="tno">準惑星候補(外縁)</span>
-      {
-        candidateDwarfs.map((cand) => (
-          <button
-            type="button"
-            class="nav-pill candidate-pill"
-            data-target-id={cand.id}
-            data-home-zone={cand.homeZone}
-            data-body-class={cand.bodyClass}
-          >
-            <span class="pill-symbol" style={`color: ${cand.color};`}>{cand.symbol}</span>
-            <span class="pill-name">{cand.nameJa}</span>
-            <span class="pill-class-badge candidate-badge">候</span>
-            {cand.moons.length > 0 && <span class="pill-moon-count">{cand.moons.length}</span>}
-          </button>
-        ))
-      }
-
-      <span class="nav-divider" aria-hidden="true"></span>
-      <span class="nav-section-tag comet-tag">周期彗星</span>
-      {
-        periodicComets.map((comet) => (
-          <button
-            type="button"
-            class="nav-pill comet-pill"
-            data-target-id={comet.id}
-            data-home-zone={comet.homeZone}
-            data-body-class={comet.bodyClass}
-          >
-            <span class="pill-symbol" style={`color: ${comet.color};`}>{comet.symbol}</span>
-            <span class="pill-name">{comet.nameJa}</span>
-            <span class="pill-class-badge comet-badge">彗</span>
-          </button>
-        ))
-      }
-    </nav>
   </header>
 
-  <!-- ハンバーガーメニュー・ドロワー＆背景バックドロップ（トグル類を集約） -->
+  <!-- タブ式統合コントロール・サイドバー＆背景バックドロップ -->
   <div id="menu-backdrop" class="menu-backdrop" aria-hidden="true"></div>
-  <aside id="hamburger-menu-drawer" class="hamburger-menu-drawer" aria-label="表示設定メニュー">
+  <aside id="hamburger-menu-drawer" class="hamburger-menu-drawer" aria-label="シミュレータ設定・統合サイドバー">
     <div class="drawer-header">
-      <h3>表示設定・トグルメニュー</h3>
-      <button type="button" id="btn-close-drawer" class="btn-close-drawer" title="メニューを閉じる">✕</button>
+      <div class="drawer-title-group">
+        <span class="drawer-header-icon" aria-hidden="true">🪐</span>
+        <h3>シミュレーター統合設定</h3>
+      </div>
+      <button type="button" id="btn-close-drawer" class="btn-close-drawer" title="サイドバーを閉じる" aria-label="サイドバーを閉じる">✕</button>
     </div>
 
+    <!-- 5タブ・ナビゲーションバー -->
+    <nav class="sidebar-tabs-nav" role="tablist" aria-label="設定カテゴリタブ">
+      <button
+        type="button"
+        class="sidebar-tab-btn active"
+        data-sidebar-tab="bodies"
+        id="tab-btn-bodies"
+        role="tab"
+        aria-selected="true"
+        aria-controls="tab-panel-bodies"
+      >
+        <span class="tab-btn-icon">🪐</span>
+        <span class="tab-btn-label">天体</span>
+      </button>
+      <button
+        type="button"
+        class="sidebar-tab-btn"
+        data-sidebar-tab="scale"
+        id="tab-btn-scale"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-panel-scale"
+      >
+        <span class="tab-btn-icon">🔍</span>
+        <span class="tab-btn-label">縮尺</span>
+      </button>
+      <button
+        type="button"
+        class="sidebar-tab-btn"
+        data-sidebar-tab="view"
+        id="tab-btn-view"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-panel-view"
+      >
+        <span class="tab-btn-icon">🧭</span>
+        <span class="tab-btn-label">視点</span>
+      </button>
+      <button
+        type="button"
+        class="sidebar-tab-btn"
+        data-sidebar-tab="display"
+        id="tab-btn-display"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-panel-display"
+      >
+        <span class="tab-btn-icon">⚙</span>
+        <span class="tab-btn-label">表示切替</span>
+      </button>
+      <button
+        type="button"
+        class="sidebar-tab-btn"
+        data-sidebar-tab="help"
+        id="tab-btn-help"
+        role="tab"
+        aria-selected="false"
+        aria-controls="tab-panel-help"
+      >
+        <span class="tab-btn-icon">❓</span>
+        <span class="tab-btn-label">ヘルプ</span>
+      </button>
+    </nav>
+
     <div class="drawer-body">
-      <!-- 1. カメラ視点モード -->
-      <div class="drawer-section">
-        <span class="drawer-label">視点モード切り替え</span>
-        <div class="toggle-group full-width" role="group" aria-label="視点モード切り替え">
-          <button type="button" id="btn-view-2d" class="toggle-btn active">
-            2D 真上視点 (北極側)
-          </button>
-          <button type="button" id="btn-view-3d" class="toggle-btn">
-            3D 斜めチルト視点
-          </button>
-        </div>
-      </div>
-
-      <!-- 2. 縮尺内の軌道間隔モード -->
-      <div class="drawer-section">
-        <span class="drawer-label">縮尺内の軌道間隔モード</span>
-        <div class="toggle-group full-width" role="group" aria-label="縮尺内の軌道間隔モード">
-          <button type="button" id="btn-scale-equal" class="toggle-btn active">
-            自動間隔 (重なり防止)
-          </button>
-          <button type="button" id="btn-scale-real" class="toggle-btn">
-            実距離比 (AU基準)
-          </button>
-        </div>
-      </div>
-
-      <!-- 3. 天体・要素の表示ON/OFFトグル -->
-      <div class="drawer-section">
-        <span class="drawer-label">天体レイヤーの表示切替</span>
-        <div class="drawer-switch-list">
-          <button type="button" id="btn-toggle-moons" class="drawer-switch-btn active">
-            <span>衛星・衛星軌道の表示</span>
-            <span id="badge-toggle-moons" class="switch-state">ON</span>
-          </button>
-          <button type="button" id="btn-toggle-comets" class="drawer-switch-btn active">
-            <span>☄ 周期彗星 (5天体) の表示</span>
-            <span id="badge-toggle-comets" class="switch-state">ON</span>
-          </button>
-          <button type="button" id="btn-toggle-probes" class="drawer-switch-btn" title="探査機（ISS、天宮、ジュノー、カッシーニ等）や参照境界線（ロッシュ限界・ヒル球等）の表示切替">
-            <span>🚀 探査機・境界線の表示</span>
-            <span id="badge-toggle-probes" class="switch-state">OFF</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 4. 区分ハイライト強調トグル -->
-      <div class="drawer-section">
-        <span class="drawer-label">特定区分のハイライト強調</span>
-        <div class="drawer-switch-list">
-          <button type="button" id="btn-emphasize-rings" class="drawer-switch-btn active">
-            <span>🪐 外惑星4天体（木・土・天・海）の環を強調</span>
-            <span id="badge-emphasize-rings" class="switch-state">ON</span>
-          </button>
-          <button type="button" id="btn-highlight-dwarfs" class="drawer-switch-btn">
-            <span>⚳ 準惑星 (5) ＋ 準惑星候補 (4) を強調</span>
-            <span id="badge-highlight-dwarfs" class="switch-state">OFF</span>
-          </button>
-          <button type="button" id="btn-highlight-comets" class="drawer-switch-btn">
-            <span>☄ 周期彗星 (ハレー・エンケ等5天体) を強調</span>
-            <span id="badge-highlight-comets" class="switch-state">OFF</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 5. 3D軌道傾斜・高度ポールの表示と強調設定 -->
-      <div class="drawer-section">
-        <span class="drawer-label">3D軌道傾斜・高度ポールの表示</span>
-        <div class="drawer-switch-list">
-          <button type="button" id="btn-toggle-inclination-guides" class="drawer-switch-btn" title="3D視点時に黄道面からの高低差ポール、足元フットプリント、交点線を表示">
-            <span>📐 3D高度ポール・交点線の表示</span>
-            <span id="badge-toggle-inclination-guides" class="switch-state">OFF</span>
-          </button>
-        </div>
-        <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">高度ポールの表示対象</div>
-        <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="高度ポールの表示対象">
-          <button type="button" id="btn-inc-mode-selected" class="toggle-btn active" title="選択した天体のみ、または代表天体のみスマート表示して画面の重なりを防ぎます（推奨）">
-            選択天体のみ (推奨)
-          </button>
-          <button type="button" id="btn-inc-mode-all" class="toggle-btn" title="全天体の高度ポールを一度に表示します">
-            全天体一括
-          </button>
-        </div>
-        <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">軌道傾斜角の視覚的強調倍率</div>
-        <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="軌道傾斜の強調倍率">
-          <button type="button" id="btn-inc-boost-1x" class="toggle-btn active" title="実際の天文学通りの傾斜角で表示（デフォルト）">
-            実角度 (1.0x)
-          </button>
-          <button type="button" id="btn-inc-boost-15x" class="toggle-btn" title="傾斜を1.5倍に強調して立体感を際立たせる">
-            強調 (1.5x)
-          </button>
-          <button type="button" id="btn-inc-boost-2x" class="toggle-btn" title="傾斜を2.0倍にダイナミック強調">
-            大強調 (2.0x)
-          </button>
-        </div>
-      </div>
-
-      <!-- 6. 軌道線スタイルの凡例 -->
-      <div class="drawer-section">
-        <span class="drawer-label">軌道線スタイルの凡例</span>
-        <div class="drawer-legend-box">
-          <div class="legend-row">
-            <span class="legend-line solid-line"></span>
-            <span>惑星 (8天体: 水星〜海王星)</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-line dashed-line"></span>
-            <span>IAU公認 準惑星 (ケレス・冥王星型4)</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-line dotted-line"></span>
-            <span>準惑星候補・外縁天体 (オルクス・セドナ等4)</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-line comet-line"></span>
-            <span>周期彗星 (正六面体 / ハレー・エンケ等5)</span>
-          </div>
-          <div class="legend-row">
-            <span class="legend-line" style="border-top: 2px dotted #7dd3fc;"></span>
-            <span>探査機の周回軌道 (▲ 正四面体) / 静止参照境界 (◌)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 7. アプリケーション・バージョン情報 -->
-      <div class="drawer-section drawer-about-section">
-        <span class="drawer-label">アプリケーション情報</span>
-        <div class="app-version-card">
-          <div class="app-version-row">
-            <strong class="app-version-title">SOLAR SYSTEM SIMULATOR</strong>
-            <span class="app-version-badge">v0.2.0</span>
-          </div>
-          <div class="app-version-details">
-            <div class="app-version-detail-item">
-              <span class="detail-label">歴期基準:</span>
-              <span class="detail-val">J2000.0 (JD 2451545.0)</span>
+      <!-- 【タブ 1】 天体一覧（恒星・惑星・準惑星・外縁天体・彗星＋イラストアイコン付き） -->
+      <div id="tab-panel-bodies" class="sidebar-tab-panel active" role="tabpanel" aria-labelledby="tab-btn-bodies">
+        <!-- 縮尺全体（俯瞰）カード -->
+        <button
+          type="button"
+          class="sidebar-body-card overview-card nav-pill active"
+          data-target-id="overview"
+          title="個別フォーカスを解除して広域縮尺全体を表示します"
+        >
+          <span class="body-illus-wrapper">
+            <span class="overview-icon" aria-hidden="true">✦</span>
+          </span>
+          <div class="body-card-info">
+            <div class="body-card-title-row">
+              <strong class="body-card-name">太陽系 縮尺全体</strong>
+              <span class="body-card-badge overview-badge">全体俯瞰</span>
             </div>
-            <div class="app-version-detail-item">
-              <span class="detail-label">描画エンジン:</span>
-              <span class="detail-val">WebGL 3D (GLSL) ＋ SVG</span>
+            <span class="body-card-sub">天体フォーカスを解除して広域オービット全体を表示</span>
+          </div>
+        </button>
+
+        <!-- 恒星（太陽） -->
+        <div class="sidebar-group-heading">
+          <span class="group-heading-dot" style="background-color: #fbbf24;"></span>
+          <span>恒星 (Star)</span>
+        </div>
+        <button
+          type="button"
+          class="sidebar-body-card nav-pill major-pill"
+          data-target-id="sun"
+          title="太陽の選択・内部4層断面・コロナ・太陽圏近傍を表示"
+        >
+          <span class="body-illus-wrapper" set:html={getBodyIllustrationSvg('sun', '#fbbf24')} />
+          <div class="body-card-info">
+            <div class="body-card-title-row">
+              <strong class="body-card-name">{SUN_DATA.nameJa}</strong>
+              <span class="body-card-symbol" style="color: #fbbf24;">{SUN_DATA.symbol}</span>
+              <span class="body-card-en">{SUN_DATA.nameEn}</span>
             </div>
-            <div class="app-version-detail-item">
-              <span class="detail-label">アニメーション:</span>
-              <span class="detail-val">GSAP 3.12 (Ticker & Inertia)</span>
+            <span class="body-card-sub">中心恒星 / 内部4層断面・コロナ臨界面</span>
+          </div>
+          <span class="body-card-zoom-badge" title="天体拡大ビュー対応">🔍</span>
+        </button>
+
+        <!-- 惑星（内惑星・外惑星 8天体） -->
+        <div class="sidebar-group-heading">
+          <span class="group-heading-dot" style="background-color: #38bdf8;"></span>
+          <span>惑星 (Planets / 8天体)</span>
+        </div>
+        {
+          innerPlanets.concat(outerPlanets).map((planet) => (
+            <button
+              type="button"
+              class="sidebar-body-card nav-pill major-pill"
+              data-target-id={planet.id}
+              data-home-zone={planet.homeZone}
+              data-body-class={planet.bodyClass}
+              title={`${planet.nameJa} (${planet.nameEn}) を選択してフォーカス`}
+            >
+              <span class="body-illus-wrapper" set:html={getBodyIllustrationSvg(planet.id, planet.color)} />
+              <div class="body-card-info">
+                <div class="body-card-title-row">
+                  <strong class="body-card-name">{planet.nameJa}</strong>
+                  <span class="body-card-symbol" style={`color: ${planet.color};`}>{planet.symbol}</span>
+                  <span class="body-card-en">{planet.nameEn}</span>
+                </div>
+                <span class="body-card-sub">{planet.category}</span>
+              </div>
+              <div class="body-card-badges">
+                {planet.moons.length > 0 && (
+                  <span class="body-card-moon-badge" title={`主要衛星 ${planet.moons.length}個`}>
+                    衛星 {planet.moons.length}
+                  </span>
+                )}
+                {MOON_SYSTEM_TARGET_IDS.includes(planet.id) && (
+                  <span class="body-card-zoom-badge" title="専用拡大ビュー対応">
+                    🔍
+                  </span>
+                )}
+              </div>
+            </button>
+          ))
+        }
+
+        <!-- IAU公認 準惑星 (5天体) -->
+        <div class="sidebar-group-heading">
+          <span class="group-heading-dot" style="background-color: #a855f7;"></span>
+          <span>IAU公認 準惑星 (Dwarf Planets / 5天体)</span>
+        </div>
+        {
+          asteroidDwarfs.concat(plutoidDwarfs).map((dwarf) => (
+            <button
+              type="button"
+              class="sidebar-body-card nav-pill dwarf-pill"
+              data-target-id={dwarf.id}
+              data-home-zone={dwarf.homeZone}
+              data-body-class={dwarf.bodyClass}
+              title={`公認準惑星 ${dwarf.nameJa} (${dwarf.nameEn}) を選択`}
+            >
+              <span class="body-illus-wrapper" set:html={getBodyIllustrationSvg(dwarf.id, dwarf.color)} />
+              <div class="body-card-info">
+                <div class="body-card-title-row">
+                  <strong class="body-card-name">{dwarf.nameJa}</strong>
+                  <span class="body-card-symbol" style={`color: ${dwarf.color};`}>{dwarf.symbol}</span>
+                  <span class="body-card-en">{dwarf.nameEn}</span>
+                  <span class="body-card-badge dwarf-badge">準</span>
+                </div>
+                <span class="body-card-sub">{dwarf.category}</span>
+              </div>
+              <div class="body-card-badges">
+                {dwarf.moons.length > 0 && (
+                  <span class="body-card-moon-badge" title={`主要衛星 ${dwarf.moons.length}個`}>
+                    衛星 {dwarf.moons.length}
+                  </span>
+                )}
+                {MOON_SYSTEM_TARGET_IDS.includes(dwarf.id) && (
+                  <span class="body-card-zoom-badge" title="専用拡大ビュー対応">
+                    🔍
+                  </span>
+                )}
+              </div>
+            </button>
+          ))
+        }
+
+        <!-- 準惑星候補・外縁天体 (4天体) -->
+        <div class="sidebar-group-heading">
+          <span class="group-heading-dot" style="background-color: #f43f5e;"></span>
+          <span>準惑星候補・外縁天体 (TNO Candidates / 4天体)</span>
+        </div>
+        {
+          candidateDwarfs.map((cand) => (
+            <button
+              type="button"
+              class="sidebar-body-card nav-pill candidate-pill"
+              data-target-id={cand.id}
+              data-home-zone={cand.homeZone}
+              data-body-class={cand.bodyClass}
+              title={`外縁天体 ${cand.nameJa} (${cand.nameEn}) を選択`}
+            >
+              <span class="body-illus-wrapper" set:html={getBodyIllustrationSvg(cand.id, cand.color)} />
+              <div class="body-card-info">
+                <div class="body-card-title-row">
+                  <strong class="body-card-name">{cand.nameJa}</strong>
+                  <span class="body-card-symbol" style={`color: ${cand.color};`}>{cand.symbol}</span>
+                  <span class="body-card-en">{cand.nameEn}</span>
+                  <span class="body-card-badge candidate-badge">外縁</span>
+                </div>
+                <span class="body-card-sub">{cand.category}</span>
+              </div>
+              <div class="body-card-badges">
+                {cand.moons.length > 0 && (
+                  <span class="body-card-moon-badge" title={`主要衛星 ${cand.moons.length}個`}>
+                    衛星 {cand.moons.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))
+        }
+
+        <!-- 周期彗星 (5天体) -->
+        <div class="sidebar-group-heading">
+          <span class="group-heading-dot" style="background-color: #2dd4bf;"></span>
+          <span>周期彗星 (Periodic Comets / 5天体)</span>
+        </div>
+        {
+          periodicComets.map((comet) => (
+            <button
+              type="button"
+              class="sidebar-body-card nav-pill comet-pill"
+              data-target-id={comet.id}
+              data-home-zone={comet.homeZone}
+              data-body-class={comet.bodyClass}
+              title={`周期彗星 ${comet.nameJa} (${comet.nameEn}) を選択`}
+            >
+              <span class="body-illus-wrapper" set:html={getBodyIllustrationSvg(comet.id, comet.color)} />
+              <div class="body-card-info">
+                <div class="body-card-title-row">
+                  <strong class="body-card-name">{comet.nameJa}</strong>
+                  <span class="body-card-symbol" style={`color: ${comet.color};`}>{comet.symbol}</span>
+                  <span class="body-card-en">{comet.nameEn}</span>
+                  <span class="body-card-badge comet-badge">彗星</span>
+                </div>
+                <span class="body-card-sub">{comet.category}</span>
+              </div>
+            </button>
+          ))
+        }
+      </div>
+
+      <!-- 【タブ 2】 縮尺の切り替え（内惑星・外惑星・外縁天体＋拡大図案内） -->
+      <div id="tab-panel-scale" class="sidebar-tab-panel" role="tabpanel" aria-labelledby="tab-btn-scale">
+        <div class="drawer-section">
+          <span class="drawer-label">太陽系の広域表示縮尺</span>
+          <div class="scale-cards-list">
+            <button type="button" class="scale-card-btn zone-btn active" data-scale-zone="inner">
+              <div class="scale-card-header">
+                <span class="zone-indicator inner-dot"></span>
+                <strong class="scale-card-title">1. 内惑星 縮尺</strong>
+                <span class="scale-card-badge">0.3 〜 5.2 AU</span>
+              </div>
+              <p class="scale-card-desc">水星・金星・地球・火星・小惑星帯・ケレス・木星軌道まで。地球型岩石惑星の運動と公転を精密に観察できます。</p>
+            </button>
+
+            <button type="button" class="scale-card-btn zone-btn" data-scale-zone="outer">
+              <div class="scale-card-header">
+                <span class="zone-indicator outer-dot"></span>
+                <strong class="scale-card-title">2. 外惑星 縮尺</strong>
+                <span class="scale-card-badge">5.2 〜 30 AU</span>
+              </div>
+              <p class="scale-card-desc">木星・土星・天王星・海王星と冥王星。巨大ガス・氷惑星の環やガリレオ衛星・タイタンなど主要衛星の運動を捉えます。</p>
+            </button>
+
+            <button type="button" class="scale-card-btn zone-btn" data-scale-zone="tno">
+              <div class="scale-card-header">
+                <span class="zone-indicator tno-dot"></span>
+                <strong class="scale-card-title">3. 外縁天体 縮尺</strong>
+                <span class="scale-card-badge">30 〜 80+ AU</span>
+              </div>
+              <p class="scale-card-desc">海王星以遠のエッジワース・カイパーベルト、冥王星・ハウメア・マケマケ・エリス・セドナ（遠日点937AU）まで広がる太陽系の全貌。</p>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <span class="drawer-label">縮尺内の軌道間隔モード</span>
+          <div class="toggle-group full-width" role="group" aria-label="縮尺内の軌道間隔モード">
+            <button type="button" id="btn-scale-equal" class="toggle-btn active" title="軌道が密集して重なるのを防ぐ均等自動間隔モード">
+              自動間隔 (重なり防止)
+            </button>
+            <button type="button" id="btn-scale-real" class="toggle-btn" title="実際の太陽からのAU距離比率に忠実な天文学モード">
+              実距離比 (AU基準)
+            </button>
+          </div>
+        </div>
+
+        <!-- 天体・衛星拡大図の案内カード -->
+        <div class="drawer-section scale-notice-section">
+          <span class="drawer-label">天体・衛星の専用拡大図</span>
+          <div class="scale-notice-card">
+            <div class="scale-notice-icon" aria-hidden="true">💡</div>
+            <div class="scale-notice-body">
+              <strong>天体拡大ビューへのアクセス</strong>
+              <p>太陽や各惑星・準惑星の「内部断面構造」「リング多重構造」「主要衛星の精密周回軌道」は、各天体を選択した際に右側に表示される<strong>【解説パネル】</strong>内の<strong>『🔍 天体と衛星軌道の専用拡大ビューで表示』</strong>ボタンから開くことができます。</p>
             </div>
           </div>
-          <p class="app-version-desc">
-            太陽・8惑星・公認準惑星・外縁天体・周期彗星のケプラー軌道精密シミュレーター。実写観測データに基づく高解像度テクスチャ、3Dオービット回転、探査機軌道に対応。
-          </p>
+          <button type="button" id="btn-sidebar-open-moon-view" class="btn-sidebar-zoom-action" style="display: none;">
+            🚀 選択中の天体の専用拡大ビューを開く
+          </button>
+        </div>
+      </div>
+
+      <!-- 【タブ 3】 視点（2D北極、3D斜めチルト、操作ガイド、リセット） -->
+      <div id="tab-panel-view" class="sidebar-tab-panel" role="tabpanel" aria-labelledby="tab-btn-view">
+        <div class="drawer-section">
+          <span class="drawer-label">カメラ視点モード切り替え</span>
+          <div class="view-mode-cards">
+            <button type="button" id="btn-sidebar-view-2d" class="view-card-btn active">
+              <div class="view-card-icon" aria-hidden="true">🧭</div>
+              <div class="view-card-content">
+                <strong>2D 真上視点 (北極側)</strong>
+                <small>黄道面を天の北極側から垂直に見下ろす幾何学的配置モード。惑星の公転配置や離心率の正確な把握に適しています。</small>
+              </div>
+            </button>
+
+            <button type="button" id="btn-sidebar-view-3d" class="view-card-btn">
+              <div class="view-card-icon" aria-hidden="true">🪐</div>
+              <div class="view-card-content">
+                <strong>3D 斜めチルト視点</strong>
+                <small>黄道面を斜めから立体的に俯瞰し、軌道傾斜角や黄道面からの高低差（Z軸）をダイナミックに体感できるモード。</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <span class="drawer-label">視点操作・ジェスチャーガイド</span>
+          <div class="gesture-guide-card">
+            <div class="gesture-guide-row">
+              <span class="gesture-badge">🖱 回転</span>
+              <span>マウス左ドラッグ / 指1本スワイプで3D視点を自由に回転</span>
+            </div>
+            <div class="gesture-guide-row">
+              <span class="gesture-badge">🔍 ズーム</span>
+              <span>マウスホイール / ピンチイン・アウトでスムーズ拡大縮小</span>
+            </div>
+            <div class="gesture-guide-row">
+              <span class="gesture-badge">✋ パン</span>
+              <span>マウス右ドラッグ / 指2本ドラッグで太陽系を平行移動</span>
+            </div>
+          </div>
+          <button type="button" id="btn-reset-camera-sidebar" class="btn-sidebar-secondary" title="カメラのズーム・角度・平行移動を初期正面位置に戻します">
+            ↺ カメラ視点を初期位置にリセット
+          </button>
+        </div>
+      </div>
+
+      <!-- 【タブ 4】 表示切替（天体レイヤー、特定区分、3D高度・軌道傾斜角、凡例） -->
+      <div id="tab-panel-display" class="sidebar-tab-panel" role="tabpanel" aria-labelledby="tab-btn-display">
+        <!-- 天体レイヤーの表示切替 -->
+        <div class="drawer-section">
+          <span class="drawer-label">天体レイヤーの表示切替</span>
+          <div class="drawer-switch-list">
+            <button type="button" id="btn-toggle-moons" class="drawer-switch-btn active">
+              <span>衛星・衛星軌道の表示</span>
+              <span id="badge-toggle-moons" class="switch-state">ON</span>
+            </button>
+            <button type="button" id="btn-toggle-comets" class="drawer-switch-btn active">
+              <span>☄ 周期彗星 (5天体) の表示</span>
+              <span id="badge-toggle-comets" class="switch-state">ON</span>
+            </button>
+            <button type="button" id="btn-toggle-probes" class="drawer-switch-btn" title="探査機（ISS、天宮、ジュノー、カッシーニ等）や参照境界線（ロッシュ限界・ヒル球等）の表示切替">
+              <span>🚀 探査機・境界線の表示</span>
+              <span id="badge-toggle-probes" class="switch-state">OFF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 特定区分のハイライト強調 -->
+        <div class="drawer-section">
+          <span class="drawer-label">特定区分のハイライト強調</span>
+          <div class="drawer-switch-list">
+            <button type="button" id="btn-emphasize-rings" class="drawer-switch-btn active">
+              <span>🪐 外惑星4天体（木・土・天・海）の環を強調</span>
+              <span id="badge-emphasize-rings" class="switch-state">ON</span>
+            </button>
+            <button type="button" id="btn-highlight-dwarfs" class="drawer-switch-btn">
+              <span>⚳ 準惑星 (5) ＋ 準惑星候補 (4) を強調</span>
+              <span id="badge-highlight-dwarfs" class="switch-state">OFF</span>
+            </button>
+            <button type="button" id="btn-highlight-comets" class="drawer-switch-btn">
+              <span>☄ 周期彗星 (ハレー・エンケ等5天体) を強調</span>
+              <span id="badge-highlight-comets" class="switch-state">OFF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3D軌道傾斜・高度ポールの表示と強調設定 -->
+        <div class="drawer-section">
+          <span class="drawer-label">3D軌道傾斜・高度ポールの表示</span>
+          <div class="drawer-switch-list">
+            <button type="button" id="btn-toggle-inclination-guides" class="drawer-switch-btn" title="3D視点時に黄道面からの高低差ポール、足元フットプリント、交点線を表示">
+              <span>📐 3D高度ポール・交点線の表示</span>
+              <span id="badge-toggle-inclination-guides" class="switch-state">OFF</span>
+            </button>
+          </div>
+          <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">高度ポールの表示対象</div>
+          <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="高度ポールの表示対象">
+            <button type="button" id="btn-inc-mode-selected" class="toggle-btn active" title="選択した天体のみスマート表示して画面の重なりを防ぎます（推奨）">
+              選択天体のみ (推奨)
+            </button>
+            <button type="button" id="btn-inc-mode-all" class="toggle-btn" title="全天体の高度ポールを一度に表示します">
+              全天体一括
+            </button>
+          </div>
+          <div class="drawer-label" style="margin-top: 10px; font-size: 0.72rem; color: #94a3b8;">軌道傾斜角の視覚的強調倍率</div>
+          <div class="toggle-group full-width" style="margin-top: 4px;" role="group" aria-label="軌道傾斜の強調倍率">
+            <button type="button" id="btn-inc-boost-1x" class="toggle-btn active" title="実際の天文学通りの傾斜角で表示（デフォルト）">
+              実角度 (1.0x)
+            </button>
+            <button type="button" id="btn-inc-boost-15x" class="toggle-btn" title="傾斜を1.5倍に強調して立体感を際立たせる">
+              強調 (1.5x)
+            </button>
+            <button type="button" id="btn-inc-boost-2x" class="toggle-btn" title="傾斜を2.0倍にダイナミック強調">
+              大強調 (2.0x)
+            </button>
+          </div>
+        </div>
+
+        <!-- 軌道線スタイルの凡例 -->
+        <div class="drawer-section">
+          <span class="drawer-label">軌道線スタイルの凡例</span>
+          <div class="drawer-legend-box">
+            <div class="legend-row">
+              <span class="legend-line solid-line"></span>
+              <span>惑星 (8天体: 水星〜海王星)</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-line dashed-line"></span>
+              <span>IAU公認 準惑星 (ケレス・冥王星型4)</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-line dotted-line"></span>
+              <span>準惑星候補・外縁天体 (オルクス・セドナ等4)</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-line comet-line"></span>
+              <span>周期彗星 (正六面体 / ハレー・エンケ等5)</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-line" style="border-top: 2px dotted #7dd3fc;"></span>
+              <span>探査機の周回軌道 (▲ 正四面体) / 静止参照境界 (◌)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 【タブ 5】 ヘルプ（アプリケーション情報・操作ガイド・計算モデル・データソース） -->
+      <div id="tab-panel-help" class="sidebar-tab-panel" role="tabpanel" aria-labelledby="tab-btn-help">
+        <!-- アプリケーション情報 -->
+        <div class="drawer-section drawer-about-section">
+          <span class="drawer-label">アプリケーション基本情報</span>
+          <div class="app-version-card">
+            <div class="app-version-row">
+              <strong class="app-version-title">SOLAR SYSTEM SIMULATOR</strong>
+              <span class="app-version-badge">v0.3.0</span>
+            </div>
+            <div class="app-version-details">
+              <div class="app-version-detail-item">
+                <span class="detail-label">歴期基準:</span>
+                <span class="detail-val">J2000.0 (JD 2451545.0)</span>
+              </div>
+              <div class="app-version-detail-item">
+                <span class="detail-label">描画エンジン:</span>
+                <span class="detail-val">WebGL 3D (GLSL) ＋ SVG</span>
+              </div>
+              <div class="app-version-detail-item">
+                <span class="detail-label">アニメーション:</span>
+                <span class="detail-val">GSAP 3.12 (Ticker & Inertia)</span>
+              </div>
+            </div>
+            <p class="app-version-desc">
+              太陽・8惑星・公認準惑星・外縁天体・周期彗星のケプラー軌道精密シミュレーター。実写観測データに基づく高解像度テクスチャ、3Dオービット回転、探査機軌道に対応。
+            </p>
+          </div>
+        </div>
+
+        <!-- 操作方法ガイド -->
+        <div class="drawer-section">
+          <span class="drawer-label">操作方法・ナビゲーション</span>
+          <div class="help-guide-box">
+            <div class="help-guide-item">
+              <strong>1. 縮尺の選択</strong>
+              <p>画面上部または縮尺タブから「内惑星」「外惑星」「外縁天体」を選択すると、対象領域に応じた最適縮尺にスムーズ遷移します。</p>
+            </div>
+            <div class="help-guide-item">
+              <strong>2. 天体の選択と解説</strong>
+              <p>画面上の天体ノードまたはサイドバーの天体カードをクリックすると、カメラが追尾フォーカスし、詳細な物理諸元やリアルタイム軌道ステータス、内部断面構造が表示されます。</p>
+            </div>
+            <div class="help-guide-item">
+              <strong>3. タイムライン制御</strong>
+              <p>画面下部で再生・一時停止・逆再生・倍速（衛星〜5年/s）を制御でき、スライダーで任意の日付（紀元前〜未来）へ直感的にタイムワープできます。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- キーボードショートカット -->
+        <div class="drawer-section">
+          <span class="drawer-label">キーボードショートカット</span>
+          <div class="shortcut-list">
+            <div class="shortcut-item">
+              <kbd class="shortcut-key">Space</kbd>
+              <span class="shortcut-desc">シミュレーション再生 / 一時停止</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd class="shortcut-key">←</kbd> / <kbd class="shortcut-key">→</kbd>
+              <span class="shortcut-desc">日時を前後に微調整送り</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd class="shortcut-key">1</kbd> / <kbd class="shortcut-key">2</kbd> / <kbd class="shortcut-key">3</kbd>
+              <span class="shortcut-desc">内惑星 / 外惑星 / 外縁天体 縮尺切り替え</span>
+            </div>
+            <div class="shortcut-item">
+              <kbd class="shortcut-key">Esc</kbd>
+              <span class="shortcut-desc">天体選択解除 / 専用拡大ビュー終了</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 天文学的計算モデル -->
+        <div class="drawer-section">
+          <span class="drawer-label">天文学的計算モデル</span>
+          <div class="help-guide-box">
+            <p style="font-size: 0.72rem; line-height: 1.5; color: #cbd5e1; margin-bottom: 0.4rem;">
+              本シミュレーターは、NASA JPL SSD Horizons および IAU Minor Planet Center のケプラー6軌道要素（軌道長半径 a、離心率 e、軌道傾斜角 i、昇交点黄経 Ω、近日点引数 ω、平均近点角 M）に基づき、離心近点角 E のケプラー方程式（M = E - e sin E）をニュートン・ラフソン法で数値的に精密求解しています。
+            </p>
+            <p style="font-size: 0.72rem; line-height: 1.5; color: #94a3b8;">
+              3次元オイラー角変換によって黄道座標系 (X, Y, Z) を算出し、日心距離、地心距離、黄道面高低差をリアルタイムに計算しています。
+            </p>
+          </div>
+        </div>
+
+        <!-- 学術データソース -->
+        <div class="drawer-section">
+          <span class="drawer-label">学術典拠・データソース</span>
+          <div class="help-guide-box">
+            <ul style="font-size: 0.72rem; line-height: 1.6; color: #94a3b8; padding-left: 1.1rem; margin: 0;">
+              <li>NASA Jet Propulsion Laboratory (JPL) Solar System Dynamics (SSD) Horizons System</li>
+              <li>IAU Minor Planet Center (MPC) Orbit Database</li>
+              <li>NASA Planetary Data System (PDS)</li>
+              <li>ESA Planetary Science Archive (PSA)</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -1840,6 +2299,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     const btnMoonSystemModeEl = document.getElementById('btn-moon-system-mode');
     const btnExitMoonViewEl = document.getElementById('btn-exit-moon-view');
     const btnOpenMoonViewEl = document.getElementById('btn-open-moon-view');
+    const btnSidebarOpenMoonViewEl = document.getElementById('btn-sidebar-open-moon-view');
 
     // 太陽DOM
     const sunSphereEl = document.getElementById('sun-sphere') as SVGCircleElement | null;
@@ -3014,7 +3474,7 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       menuBackdropEl?.classList.toggle('is-visible', open);
       if (menuDrawerEl) {
         gsap.to(menuDrawerEl, {
-          x: open ? 0 : 340,
+          x: open ? 0 : 360,
           autoAlpha: open ? 1 : 0,
           duration: 0.35,
           ease: open ? 'power3.out' : 'power2.in',
@@ -3030,6 +3490,37 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     });
     menuBackdropEl?.addEventListener('click', () => {
       setDrawerOpen(false);
+    });
+
+    /**
+     * サイドバーのタブ切り替え
+     */
+    function switchSidebarTab(tabId: string) {
+      document.querySelectorAll<HTMLButtonElement>('.sidebar-tab-btn').forEach((btn) => {
+        const isTarget = btn.dataset.sidebarTab === tabId;
+        btn.classList.toggle('active', isTarget);
+        btn.setAttribute('aria-selected', String(isTarget));
+      });
+      document.querySelectorAll<HTMLElement>('.sidebar-tab-panel').forEach((panel) => {
+        const isTarget = panel.id === `tab-panel-${tabId}`;
+        panel.classList.toggle('active', isTarget);
+      });
+    }
+
+    document.querySelectorAll<HTMLButtonElement>('.sidebar-tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.dataset.sidebarTab;
+        if (tabId) switchSidebarTab(tabId);
+      });
+    });
+
+    // サイドバー内の天体カードクリック時、スマホならドロワーを閉じて画面を見せる
+    document.querySelectorAll<HTMLButtonElement>('.sidebar-body-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          setDrawerOpen(false);
+        }
+      });
     });
 
     function escapeHtml(str: string): string {
@@ -5614,10 +6105,10 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
      * 詳細パネル内の「専用拡大ビューで表示」ボタンの表示・文言を同期する
      */
     function syncOpenMoonViewButton(targetId: string) {
-      if (!btnOpenMoonViewEl) return;
       const isTarget = moonTargetIds.includes(targetId);
       if (!isTarget) {
-        btnOpenMoonViewEl.style.display = 'none';
+        if (btnOpenMoonViewEl) btnOpenMoonViewEl.style.display = 'none';
+        if (btnSidebarOpenMoonViewEl) btnSidebarOpenMoonViewEl.style.display = 'none';
         return;
       }
       const isSun = targetId === 'sun';
@@ -5625,15 +6116,24 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       const bodyNameJa = isSun ? sunData.nameJa : (planet?.nameJa ?? '');
       const hasMoons = !isSun && !!planet && planet.moons.length > 0;
 
-      btnOpenMoonViewEl.style.display = 'flex';
-      if (simState.isMoonSystemView && simState.moonViewPlanetId === targetId) {
-        btnOpenMoonViewEl.textContent = '← 太陽系全体ビュー（3段階縮尺）へ戻る';
-        btnOpenMoonViewEl.classList.add('is-active-view');
-      } else {
-        btnOpenMoonViewEl.textContent = hasMoons
-          ? `🔍 ${bodyNameJa}と衛星軌道の専用拡大ビューを開く`
-          : `🔍 ${bodyNameJa}の内部断面・近傍圏 専用拡大ビューを開く`;
-        btnOpenMoonViewEl.classList.remove('is-active-view');
+      if (btnOpenMoonViewEl) {
+        btnOpenMoonViewEl.style.display = 'flex';
+        if (simState.isMoonSystemView && simState.moonViewPlanetId === targetId) {
+          btnOpenMoonViewEl.textContent = '← 太陽系全体ビュー（3段階縮尺）へ戻る';
+          btnOpenMoonViewEl.classList.add('is-active-view');
+        } else {
+          btnOpenMoonViewEl.textContent = hasMoons
+            ? `🔍 ${bodyNameJa}と衛星軌道の専用拡大ビューを開く`
+            : `🔍 ${bodyNameJa}の内部断面・近傍圏 専用拡大ビューを開く`;
+          btnOpenMoonViewEl.classList.remove('is-active-view');
+        }
+      }
+
+      if (btnSidebarOpenMoonViewEl) {
+        btnSidebarOpenMoonViewEl.style.display = 'flex';
+        btnSidebarOpenMoonViewEl.textContent = simState.isMoonSystemView
+          ? '← 太陽系全体ビューへ戻る'
+          : `🚀 ${bodyNameJa} の専用拡大ビューを開く`;
       }
     }
 
@@ -6321,6 +6821,17 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
     });
 
+    btnSidebarOpenMoonViewEl?.addEventListener('click', () => {
+      if (simState.isMoonSystemView) {
+        closeMoonSystemView({ keepPlanetSelected: true });
+      } else if (moonTargetIds.includes(simState.selectedBodyId)) {
+        openMoonSystemView(simState.selectedBodyId);
+        if (window.innerWidth <= 768) {
+          setDrawerOpen(false);
+        }
+      }
+    });
+
     document.querySelectorAll<HTMLButtonElement>('.moon-target-pill').forEach((pill) => {
       pill.addEventListener('click', () => {
         const targetId = pill.dataset.moonTargetId;
@@ -6482,9 +6993,12 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       }
     });
 
-    // 2D真上視点 ⇔ 3D斜めチルト視点（画面左下のクイックボタンとも同期）
+    // 2D真上視点 ⇔ 3D斜めチルト視点（画面左下のクイックボタン・サイドバーとも同期）
     const btnView2d = document.getElementById('btn-view-2d');
     const btnView3d = document.getElementById('btn-view-3d');
+    const btnSidebarView2d = document.getElementById('btn-sidebar-view-2d');
+    const btnSidebarView3d = document.getElementById('btn-sidebar-view-3d');
+    const btnResetCameraSidebar = document.getElementById('btn-reset-camera-sidebar');
     const btnQuickView2d = document.getElementById('btn-quick-view-2d');
     const btnQuickView3d = document.getElementById('btn-quick-view-3d');
     const btnDragModePan = document.getElementById('btn-drag-mode-pan');
@@ -6496,6 +7010,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
       btnQuickView2d?.classList.toggle('active', !is3d);
       btnView3d?.classList.toggle('active', is3d);
       btnView2d?.classList.toggle('active', !is3d);
+      btnSidebarView3d?.classList.toggle('active', is3d);
+      btnSidebarView2d?.classList.toggle('active', !is3d);
     }
 
     function setDragMode(mode: 'pan' | 'orbit') {
@@ -6530,20 +7046,28 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
 
     btnView2d?.addEventListener('click', apply2dView);
     btnQuickView2d?.addEventListener('click', apply2dView);
+    btnSidebarView2d?.addEventListener('click', apply2dView);
 
     btnView3d?.addEventListener('click', apply3dView);
     btnQuickView3d?.addEventListener('click', apply3dView);
+    btnSidebarView3d?.addEventListener('click', apply3dView);
 
-    btnResetRotation?.addEventListener('click', () => {
+    const resetCameraHandler = () => {
       sync3dViewUi(false);
       gsap.to(simState, {
+        cameraX: 0,
+        cameraY: 0,
+        cameraZoom: 1.0,
         cameraYawDeg: 0,
         cameraPitchDeg: 90,
         tiltY: 1.0,
         duration: 0.85,
         ease: 'power3.inOut',
       });
-    });
+    };
+
+    btnResetRotation?.addEventListener('click', resetCameraHandler);
+    btnResetCameraSidebar?.addEventListener('click', resetCameraHandler);
 
     // 自動間隔調整 ⇔ 実距離比(AU)
     const btnScaleEqual = document.getElementById('btn-scale-equal');
@@ -7495,8 +8019,8 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 320px;
-    max-width: 88vw;
+    width: 360px;
+    max-width: 92vw;
     background: rgba(10, 16, 34, 0.96);
     backdrop-filter: blur(18px);
     border-left: 1px solid rgba(56, 189, 248, 0.3);
@@ -7510,14 +8034,26 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.95rem 1.1rem;
+    padding: 0.85rem 1rem;
     border-bottom: 1px solid var(--border-subtle);
+    background: rgba(15, 23, 42, 0.75);
+  }
+
+  .drawer-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .drawer-header-icon {
+    font-size: 1.15rem;
   }
 
   .drawer-header h3 {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 700;
     color: #f8fafc;
+    margin: 0;
   }
 
   .btn-close-drawer {
@@ -7530,14 +8066,543 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     cursor: pointer;
     display: grid;
     place-items: center;
+    transition: all 0.2s ease;
+  }
+
+  .btn-close-drawer:hover {
+    background: rgba(51, 65, 85, 0.8);
+    border-color: #38bdf8;
+    color: #ffffff;
+  }
+
+  /* 5タブ ナビゲーションバー */
+  .sidebar-tabs-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.65rem;
+    background: rgba(15, 23, 42, 0.65);
+    border-bottom: 1px solid var(--border-subtle);
+    overflow-x: auto;
+  }
+
+  .sidebar-tabs-nav::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .sidebar-tabs-nav::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 2px;
+  }
+
+  .sidebar-tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0.38rem 0.45rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    flex: 1;
+    min-width: 50px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .sidebar-tab-btn:hover {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .sidebar-tab-btn.active {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.4);
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.22);
+  }
+
+  .tab-btn-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .tab-btn-label {
+    font-size: 0.66rem;
+    font-weight: 600;
   }
 
   .drawer-body {
-    padding: 1rem 1.1rem;
+    padding: 0.95rem 1rem;
     overflow-y: auto;
+    flex: 1;
+  }
+
+  .sidebar-tab-panel {
+    display: none;
+    flex-direction: column;
+    gap: 0.95rem;
+  }
+
+  .sidebar-tab-panel.active {
+    display: flex;
+  }
+
+  /* 天体タブ（タブ1）専用スタイル */
+  .sidebar-group-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-top: 0.65rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    letter-spacing: 0.03em;
+  }
+
+  .group-heading-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sidebar-body-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(15, 23, 42, 0.65);
+    color: #cbd5e1;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .sidebar-body-card:hover {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(56, 189, 248, 0.45);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
+  .sidebar-body-card.active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.26), rgba(99, 102, 241, 0.22));
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.38);
+  }
+
+  .sidebar-body-card.overview-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85));
+    border-color: rgba(56, 189, 248, 0.3);
+    margin-bottom: 0.3rem;
+  }
+
+  .body-illus-wrapper {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .body-illus-svg {
+    width: 32px;
+    height: 32px;
+    overflow: visible;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  }
+
+  .overview-icon {
+    font-size: 1.15rem;
+    color: #38bdf8;
+  }
+
+  .body-card-info {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1.15rem;
+    gap: 2px;
+  }
+
+  .body-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .body-card-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .body-card-symbol {
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .body-card-en {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-family: var(--font-mono);
+  }
+
+  .body-card-sub {
+    font-size: 0.65rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sidebar-body-card.active .body-card-sub {
+    color: #bae6fd;
+  }
+
+  .body-card-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .body-card-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+
+  .dwarf-badge {
+    background: rgba(168, 85, 247, 0.25);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+  }
+
+  .candidate-badge {
+    background: rgba(244, 63, 94, 0.22);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.38);
+  }
+
+  .comet-badge {
+    background: rgba(45, 212, 191, 0.22);
+    color: #5eead4;
+    border: 1px solid rgba(45, 212, 191, 0.38);
+  }
+
+  .overview-badge {
+    background: rgba(56, 189, 248, 0.22);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+  }
+
+  .body-card-moon-badge {
+    font-size: 0.62rem;
+    padding: 0.12rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #7dd3fc;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .body-card-zoom-badge {
+    font-size: 0.72rem;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
+  }
+
+  /* 縮尺タブ（タブ2）専用スタイル */
+  .scale-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .scale-card-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(15, 23, 42, 0.75);
+    color: #cbd5e1;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .scale-card-btn:hover {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+
+  .scale-card-btn.active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(99, 102, 241, 0.16));
+    border-color: #38bdf8;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+  }
+
+  .scale-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .scale-card-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .scale-card-badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+  }
+
+  .scale-card-desc {
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: #94a3b8;
+    margin: 0;
+  }
+
+  .scale-notice-card {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .scale-notice-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .scale-notice-body strong {
+    display: block;
+    font-size: 0.74rem;
+    color: #f8fafc;
+    margin-bottom: 0.25rem;
+  }
+
+  .scale-notice-body p {
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+    margin: 0;
+  }
+
+  .btn-sidebar-zoom-action {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #38bdf8;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(99, 102, 241, 0.3));
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
+    margin-top: 0.5rem;
+  }
+
+  .btn-sidebar-zoom-action:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.48), rgba(99, 102, 241, 0.42));
+    border-color: #7dd3fc;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+  }
+
+  /* 視点タブ（タブ3）専用スタイル */
+  .view-mode-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .view-card-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(15, 23, 42, 0.75);
+    color: #cbd5e1;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .view-card-btn:hover {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+
+  .view-card-btn.active {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(99, 102, 241, 0.16));
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.28);
+  }
+
+  .view-card-btn.active strong {
+    color: #38bdf8;
+  }
+
+  .view-card-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .view-card-content strong {
+    display: block;
+    font-size: 0.8rem;
+    color: #f8fafc;
+    margin-bottom: 0.2rem;
+  }
+
+  .view-card-content small {
+    font-size: 0.66rem;
+    line-height: 1.4;
+    color: #94a3b8;
+    display: block;
+  }
+
+  .gesture-guide-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 9px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .gesture-guide-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.68rem;
+    color: #cbd5e1;
+  }
+
+  .gesture-badge {
+    font-size: 0.64rem;
+    font-weight: 700;
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    white-space: nowrap;
+  }
+
+  .btn-sidebar-secondary {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(30, 41, 59, 0.6);
+    color: #cbd5e1;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.4rem;
+  }
+
+  .btn-sidebar-secondary:hover {
+    background: rgba(51, 65, 85, 0.8);
+    border-color: #38bdf8;
+    color: #ffffff;
+  }
+
+  /* ヘルプタブ（タブ5）専用スタイル */
+  .help-guide-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 9px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  .help-guide-item strong {
+    display: block;
+    font-size: 0.75rem;
+    color: #f8fafc;
+    margin-bottom: 0.15rem;
+  }
+
+  .help-guide-item p {
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: #94a3b8;
+    margin: 0;
+  }
+
+  .shortcut-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .shortcut-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .shortcut-key {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(30, 41, 59, 0.8);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  .shortcut-desc {
+    font-size: 0.68rem;
+    color: #cbd5e1;
   }
 
   .drawer-section {
@@ -9451,27 +10516,34 @@ const kuiperBeltParticles = Array.from({ length: 320 }).map((_, i) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    margin-bottom: 0.55rem;
-    padding: 0.46rem 0.75rem;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+    padding: 0.58rem 0.85rem;
     border-radius: 10px;
-    border: 1px solid rgba(56, 189, 248, 0.5);
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(99, 102, 241, 0.2));
-    color: #e0f2fe;
-    font-size: 0.75rem;
+    border: 1px solid #38bdf8;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.32), rgba(99, 102, 241, 0.28));
+    color: #ffffff;
+    font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
   }
 
   .btn-open-moon-view:hover {
-    background: linear-gradient(135deg, rgba(14, 165, 233, 0.34), rgba(99, 102, 241, 0.32));
-    border-color: #38bdf8;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.48), rgba(99, 102, 241, 0.42));
+    border-color: #7dd3fc;
     color: #ffffff;
+    box-shadow: 0 0 24px rgba(56, 189, 248, 0.55);
+    transform: translateY(-1px);
   }
 
   .btn-open-moon-view.is-active-view {
-    border-color: rgba(251, 191, 36, 0.55);
+    border-color: rgba(251, 191, 36, 0.75);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.2));
+    color: #fde047;
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.35);
+  }
     background: rgba(251, 191, 36, 0.16);
     color: #fde047;
   }
