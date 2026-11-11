@@ -13,7 +13,7 @@ const serializedPlanets = JSON.stringify(PLANETS_DATA);
 const serializedZonesMeta = JSON.stringify(SCALE_ZONES_META);
 const serializedMoonTargets = JSON.stringify(MOON_SYSTEM_TARGET_IDS);
 
-// 天体・衛星軌道拡大ビュー対象の14天体スイッチャー項目（太陽・8惑星・5公認準惑星）
+// 天体・衛星軌道拡大ビュー対象の全28天体スイッチャー項目（太陽・8惑星・5公認準惑星・外縁天体・周期彗星）
 const moonSystemSwitcherItems = MOON_SYSTEM_TARGET_IDS.map((id) => {
   if (id === 'sun') {
     return {
@@ -574,7 +574,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
                   </span>
                 )}
                 {MOON_SYSTEM_TARGET_IDS.includes(planet.id) && (
-                  <span class="body-card-zoom-badge" title="専用拡大ビュー対応">
+                  <span class="body-card-zoom-badge" title="拡大ビュー対応">
                     🔍
                   </span>
                 )}
@@ -615,7 +615,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
                   </span>
                 )}
                 {MOON_SYSTEM_TARGET_IDS.includes(dwarf.id) && (
-                  <span class="body-card-zoom-badge" title="専用拡大ビュー対応">
+                  <span class="body-card-zoom-badge" title="拡大ビュー対応">
                     🔍
                   </span>
                 )}
@@ -655,6 +655,11 @@ function getBodyIllustrationSvg(id: string, color: string): string {
                     衛星 {cand.moons.length}
                   </span>
                 )}
+                {MOON_SYSTEM_TARGET_IDS.includes(cand.id) && (
+                  <span class="body-card-zoom-badge" title="拡大ビュー対応">
+                    🔍
+                  </span>
+                )}
               </div>
             </button>
           ))
@@ -684,6 +689,13 @@ function getBodyIllustrationSvg(id: string, color: string): string {
                   <span class="body-card-badge comet-badge">彗星</span>
                 </div>
                 <span class="body-card-sub">{comet.category}</span>
+              </div>
+              <div class="body-card-badges">
+                {MOON_SYSTEM_TARGET_IDS.includes(comet.id) && (
+                  <span class="body-card-zoom-badge" title="拡大ビュー対応">
+                    🔍
+                  </span>
+                )}
               </div>
             </button>
           ))
@@ -738,16 +750,16 @@ function getBodyIllustrationSvg(id: string, color: string): string {
 
         <!-- 天体・衛星拡大図の案内カード -->
         <div class="drawer-section scale-notice-section">
-          <span class="drawer-label">天体・衛星の専用拡大図</span>
+          <span class="drawer-label">天体・衛星の拡大ビュー</span>
           <div class="scale-notice-card">
             <div class="scale-notice-icon" aria-hidden="true">💡</div>
             <div class="scale-notice-body">
               <strong>天体拡大ビューへのアクセス</strong>
-              <p>太陽や各惑星・準惑星の「内部断面構造」「リング多重構造」「主要衛星の精密周回軌道」は、各天体を選択した際に右側に表示される<strong>【解説パネル】</strong>内の<strong>『🔍 天体と衛星軌道の専用拡大ビューで表示』</strong>ボタンから開くことができます。</p>
+              <p>太陽や各惑星・準惑星・外縁天体・彗星の「内部マントル構造」「リング多重構造」「主要衛星の精密周回軌道」「近傍重力圏」は、各天体を選択した際に右側に表示される<strong>【解説パネル】</strong>内の<strong>『🔍 天体と衛星軌道の拡大ビューで表示』</strong>ボタンから開くことができます。</p>
             </div>
           </div>
           <button type="button" id="btn-sidebar-open-moon-view" class="btn-sidebar-zoom-action" style="display: none;">
-            🚀 選択中の天体の専用拡大ビューを開く
+            🚀 選択中の天体の拡大ビューを開く
           </button>
         </div>
       </div>
@@ -964,7 +976,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
             </div>
             <div class="shortcut-item">
               <kbd class="shortcut-key">Esc</kbd>
-              <span class="shortcut-desc">天体選択解除 / 専用拡大ビュー終了</span>
+              <span class="shortcut-desc">天体選択解除 / 拡大ビュー終了</span>
             </div>
           </div>
         </div>
@@ -1043,17 +1055,17 @@ function getBodyIllustrationSvg(id: string, color: string): string {
           <rect x="-120" y="0" width="240" height="120" />
         </clipPath>
 
-        <!-- 衛星系拡大専用ビュー（中心惑星 r=52px）用の大サイズ手前側リングクリップパス -->
+        <!-- 衛星系拡大ビュー（中心惑星 r=52px）用の大サイズ手前側リングクリップパス -->
         <clipPath id="ms-ring-front-clip" clipPathUnits="userSpaceOnUse">
           <rect x="-260" y="0" width="520" height="260" />
         </clipPath>
 
-        <!-- 専用拡大ビューの中心天体・右上90°内部断面カット用クリップパス -->
+        <!-- 拡大ビューの中心天体・右上90°内部断面カット用クリップパス -->
         <clipPath id="ms-cutaway-clip" clipPathUnits="userSpaceOnUse">
           <rect x="0" y="-120" width="120" height="120" />
         </clipPath>
 
-        <!-- 専用拡大ビューの中心天体球体内の大気流動アニメーション用クリップパス -->
+        <!-- 拡大ビューの中心天体球体内の大気流動アニメーション用クリップパス -->
         <clipPath id="ms-sphere-clip" clipPathUnits="userSpaceOnUse">
           <circle id="ms-sphere-clip-circle" cx="0" cy="0" r="52" />
         </clipPath>
@@ -1772,13 +1784,13 @@ function getBodyIllustrationSvg(id: string, color: string): string {
       </g>
     </svg>
 
-    <!-- 天体・衛星系拡大専用ビュー時の上部フローティング14天体スイッチャーバー -->
+    <!-- 天体・衛星系拡大ビュー時の上部フローティング天体スイッチャーバー -->
     <div
       id="moon-system-switcher"
       class="moon-system-switcher"
       style="display: none;"
       role="region"
-      aria-label="天体と衛星軌道の拡大専用ビュー（14天体切り替え）"
+      aria-label="天体と衛星軌道の拡大ビュー（全天体切り替え）"
     >
       <div class="ms-switcher-header">
         <button
@@ -1789,7 +1801,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
         >
           ← 太陽系全体へ戻る
         </button>
-        <span class="ms-switcher-title">🪐 天体・衛星軌道 専用拡大ビュー (太陽・8惑星・5準惑星)</span>
+        <span class="ms-switcher-title">🪐 天体・衛星軌道 拡大ビュー (全天体対応)</span>
         <button
           type="button"
           id="btn-ms-toggle-probes"
@@ -2011,17 +2023,17 @@ function getBodyIllustrationSvg(id: string, color: string): string {
 
       <p id="detail-description" class="detail-description"></p>
 
-      <!-- 対象14天体（太陽・水星・金星・地球・火星・ケレス・木星・土星・天王星・海王星・冥王星・ハウメア・マケマケ・エリス）の専用拡大ビュー切り替えボタン -->
+      <!-- 全28天体（太陽・8惑星・5公認準惑星・外縁天体・彗星）の拡大ビュー切り替えボタン -->
       <button
         type="button"
         id="btn-open-moon-view"
         class="btn-open-moon-view"
         style="display: none;"
       >
-        🔍 天体と衛星軌道の専用拡大ビューで表示
+        🔍 天体と衛星軌道の拡大ビューで表示
       </button>
 
-      <!-- 内部・マントル構造セクション（太陽・8惑星・ケレス・冥王星・エリス選択時に表示） -->
+      <!-- 内部・マントル構造セクション（全28天体選択時に表示） -->
       <div id="detail-interior-section" class="detail-interior-section" style="display: none;">
         <div class="moons-section-header">
           <h3 id="detail-interior-heading">🌐 内部・マントル断面構造</h3>
@@ -2289,7 +2301,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     const kuiperBeltHaloEl = document.getElementById('kuiper-belt-halo') as SVGEllipseElement | null;
     const kuiperBeltBandEl = document.getElementById('kuiper-belt-band') as SVGEllipseElement | null;
 
-    // 惑星・衛星軌道拡大専用ビューDOM
+    // 天体・衛星軌道拡大ビューDOM
     const moonSystemStageEl = document.getElementById('moon-system-stage') as SVGGElement | null;
     const msGridGroupEl = document.getElementById('ms-grid-group') as SVGGElement | null;
     const msOrbitsGroupEl = document.getElementById('ms-orbits-group') as SVGGElement | null;
@@ -2887,7 +2899,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
       simState.moonTimeDays += clockDelta * (spd > 12 ? 6 / spd : 1);
       simState.msMoonTimeDays += clockDelta * (spd > 12 ? 3.5 / spd : 1);
 
-      // 拡大専用ビュー中は黄経グリッド・小惑星帯・カイパーベルトが非表示なので更新を省略する
+      // 拡大ビュー中は黄経グリッド・小惑星帯・カイパーベルトが非表示なので更新を省略する
       if (!simState.isMoonSystemView) {
         updateSunGridAndBelts();
       }
@@ -3659,7 +3671,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     }
 
     /**
-     * 太陽・水星・金星・ケレス（自然衛星を持たない4天体）の拡大専用ビューで表示する
+     * 太陽・水星・金星・ケレス・外縁天体・周期彗星等の拡大ビューで表示する
      * 近傍重力圏（ロッシュ限界・ヒル球）・太陽圏コロナ境界・探査機基準軌道データ
      */
     interface NearSpaceZoneConfig {
@@ -3929,10 +3941,148 @@ function getBodyIllustrationSvg(id: string, color: string): string {
             'NASA主導・アルテミス計画で月近傍に建設される次世代有人宇宙ステーション。月の南北極域を縦断する近直線ハロー軌道（NRHO：近月点1,500km〜遠月点70,000km）を約7日周期で周回し、月面着陸探査や将来の有人火星探査の補給・中継ハブとなります。',
         },
       ],
+      sedna: [
+        {
+          id: 'sedna_roche_limit',
+          nameJa: 'ロッシュ限界（剛体破壊限界）',
+          nameEn: 'Rigid Roche Limit',
+          distanceKm: 1200,
+          ratioLabel: '2.41 Rₚ',
+          orbitalPeriodDays: 0.15,
+          initialAngleDeg: 45,
+          sizePx: 3.2,
+          color: '#f43f5e',
+          badgeLabel: '潮汐破壊限界 1,200km',
+          description:
+            '極遠日点（937 AU）を持つ超長周期外縁天体セドナの剛体ロッシュ限界。極低温（-240℃以下）で凍結したメタン・ソリン氷地表を維持しています。',
+        },
+        {
+          id: 'sedna_hill_sphere',
+          nameJa: 'セドナ ヒル球境界（オールトの雲内縁重力圏）',
+          nameEn: 'Sedna Hill Sphere Boundary',
+          distanceKm: 850000,
+          ratioLabel: '1708 Rₚ',
+          orbitalPeriodDays: 41.5,
+          initialAngleDeg: 180,
+          sizePx: 3.8,
+          color: '#fb7185',
+          badgeLabel: 'ヒル球 約85万km',
+          description:
+            '太陽から76〜937 AUの超深宇宙を公転するセドナの重力影響圏。太陽潮汐力が極めて弱いため、広大なヒル球が形成されています。',
+        },
+      ],
+      halley: [
+        {
+          id: 'halley_giotto_orbit',
+          nameJa: '欧州探査機ジオット (Giotto) 最接近遭遇圏',
+          nameEn: 'ESA Giotto Spacecraft Flyby Zone',
+          distanceKm: 596,
+          ratioLabel: '108 Rₚ (最接近 596km)',
+          orbitalPeriodDays: 0.35,
+          initialAngleDeg: 75,
+          sizePx: 3.5,
+          color: '#38bdf8',
+          badgeLabel: '探査機最接近 596km',
+          description:
+            '1986年3月、欧州ESAの探査機ジオットが秒速68kmでハレー彗星の暗黒ピーナッツ状核からわずか596kmまで最接近し、世界で初めて彗星核の直接撮影に成功した歴史的領域。',
+        },
+        {
+          id: 'halley_coma_boundary',
+          nameJa: 'ハレー彗星 コマ（ガス・ダスト外気圏）境界',
+          nameEn: 'Halley Coma Gas & Dust Boundary',
+          distanceKm: 100000,
+          ratioLabel: '18,180 Rₚ',
+          orbitalPeriodDays: 4.8,
+          initialAngleDeg: 210,
+          sizePx: 3.8,
+          color: '#2dd4bf',
+          badgeLabel: 'コマ拡散領域 約10万km',
+          description:
+            '太陽接近時に核表面から昇華した水蒸気・一酸化炭素・シアン・ダスト粒子が球状に広がり、太陽光を散乱して輝く巨大な大気層（コマ）の領域。',
+        },
+      ],
+      churyumov_gerasimenko: [
+        {
+          id: 'churyumov_rosetta_orbit',
+          nameJa: '探査機ロゼッタ (Rosetta) 周回ランデブー観測軌道',
+          nameEn: 'Rosetta Spacecraft Escort Orbit',
+          distanceKm: 30,
+          ratioLabel: '14.3 Rₚ (高度 20km)',
+          orbitalPeriodDays: 1.2,
+          initialAngleDeg: 60,
+          sizePx: 3.6,
+          color: '#38bdf8',
+          badgeLabel: 'ロゼッタ周回 高度20km',
+          description:
+            '欧州ESAの探査機ロゼッタが2014年8月から2年以上にわたりアヒル型2葉核に寄り添って精密周回探査を行い、着陸機フィラエのアギルキアへの軟着陸を支援したランデブー軌道。',
+        },
+        {
+          id: 'churyumov_coma_boundary',
+          nameJa: '揮発性ガス・ダストジェット噴出拡散圏',
+          nameEn: 'Gas & Dust Jet Outgassing Zone',
+          distanceKm: 5000,
+          ratioLabel: '2,380 Rₚ',
+          orbitalPeriodDays: 3.5,
+          initialAngleDeg: 195,
+          sizePx: 3.6,
+          color: '#5eead4',
+          badgeLabel: 'ジェット拡散圏 約5,000km',
+          description:
+            '核の頸部（ハティ領域）や崖面の亀裂から水蒸気・二酸化炭素・有機分子が秒速数百メートルで勢いよくジェット噴出し、彗星活動が最大化する領域。',
+        },
+      ],
+      encke: [
+        {
+          id: 'encke_perihelion_jet_zone',
+          nameJa: 'エンケ彗星 近日点ガスジェット・微粒子放出圏',
+          nameEn: 'Encke Perihelion Outgassing Zone',
+          distanceKm: 30000,
+          ratioLabel: '12,500 Rₚ',
+          orbitalPeriodDays: 3.3,
+          initialAngleDeg: 80,
+          sizePx: 3.5,
+          color: '#2dd4bf',
+          badgeLabel: '0.339 AU 近日点噴出圏',
+          description:
+            '太陽系主要彗星の中で最短の公転周期（3.30年）を持つエンケ彗星が、水星より内側（0.339 AU）の強烈な太陽光線を受けて扇状にガス・ダストを放出する領域。おうし座流星群の母天体。',
+        },
+      ],
+      swift_tuttle: [
+        {
+          id: 'swift_meteor_stream_zone',
+          nameJa: 'ペルセウス座流星群ダストトレイル放出圏',
+          nameEn: 'Perseid Meteor Dust Stream Zone',
+          distanceKm: 50000,
+          ratioLabel: '3,846 Rₚ',
+          orbitalPeriodDays: 8.5,
+          initialAngleDeg: 110,
+          sizePx: 3.6,
+          color: '#2dd4bf',
+          badgeLabel: 'ペルセウス座流星群母天体',
+          description:
+            '直径約26kmの巨大彗星核から放出されたミリ〜センチサイズのダスト微粒子が軌道上に帯状に連なり、毎年8月に地球大気と衝突して極大を迎える「ペルセウス座流星群」の母体ストリーム。',
+        },
+      ],
+      giacobini_zinner: [
+        {
+          id: 'giacobini_ice_flyby',
+          nameJa: '探査機 ICE (ISEE-3) プラズマテイル通過圏',
+          nameEn: 'ICE (ISEE-3) Spacecraft Tail Crossing',
+          distanceKm: 7800,
+          ratioLabel: '3,900 Rₚ',
+          orbitalPeriodDays: 1.8,
+          initialAngleDeg: 70,
+          sizePx: 3.5,
+          color: '#38bdf8',
+          badgeLabel: '探査機テイル通過 7,800km',
+          description:
+            '1985年9月、NASAの探査機ICE（ISEE-3）が人類史上初めて彗星の反太陽側イオン・プラズマテイルを横断観測（核後方約7,800km）した記念すべき領域。10月りゅう座流星群の母天体。',
+        },
+      ],
     };
 
     /**
-     * 近傍基準圏のうち「実在の探査機が周回した軌道」を示すID。
+     * 近傍基準圏のうち「実在の探査機が周回・遭遇した軌道」を示すID。
      * これらのみ小さな正四面体（探査機）が軌道を周回する。
      * それ以外（ロッシュ限界・ヒル球・アルヴェーン臨界面・外気圏境界など）は天体ではない参照境界であり、
      * 衛星と誤解されないよう公転するマーカーは置かず、静止した境界リングとラベルだけで表示する。
@@ -3947,6 +4097,9 @@ function getBodyIllustrationSvg(id: string, color: string): string {
       'earth_tiangong_orbit',
       'earth_iss_orbit',
       'earth_lunar_gateway_orbit',
+      'halley_giotto_orbit',
+      'churyumov_rosetta_orbit',
+      'giacobini_ice_flyby',
     ]);
 
     function isProbeZone(id: string): boolean {
@@ -3962,7 +4115,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
         .map((z) => {
           const probe = isProbeZone(z.id);
           const kindBadge = probe
-            ? '<span class="zone-kind-badge is-probe">▲ 探査機が周回</span>'
+            ? '<span class="zone-kind-badge is-probe">▲ 探査機が周回・遭遇</span>'
             : '<span class="zone-kind-badge is-boundary">◌ 参照境界（天体ではありません）</span>';
           return `
             <div class="moon-card" data-moon-card-id="${z.id}" data-zone-kind="${probe ? 'probe' : 'boundary'}" style="display: ${isVisible ? '' : 'none'};">
@@ -4017,7 +4170,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     }
 
     /**
-     * 太陽・8惑星・5公認準惑星の拡大専用ビューにおける専用アニメーション説明ラベル
+     * 全28天体の拡大ビューにおける専用アニメーション説明ラベル
      */
     const DEDICATED_ANIM_LABELS: Record<string, string> = {
       sun: '✦ 専用アニメーション: コロナ光条回転・プロミネンス脈動・太陽風プラズマ粒子放出・光球対流',
@@ -4036,10 +4189,24 @@ function getBodyIllustrationSvg(id: string, color: string): string {
       haumea: '✦ 専用アニメーション: 高速自転結晶質氷輝き・2重環氷粒子公転 ＋ カイパーベルト半透明氷粒子',
       makemake: '✦ 専用アニメーション: 赤褐色ソリン・メタン霜昇華ヘイズ ＋ カイパーベルト半透明氷粒子',
       eris: '✦ 専用アニメーション: 超高アルベド窒素・メタン氷殻シンチレーション ＋ 散乱円盤・カイパーベルト透明氷粒子',
+      orcus: '✦ 専用アニメーション: 炭素質・メタン氷暗色表面 ＋ 伴星ヴァンスとの二重天体潮汐固定 ＋ カイパーベルト氷微粒子',
+      quaoar: '✦ 専用アニメーション: 結晶質氷地表 ＋ ロッシュ限界外周2重環粒子公転 ＋ カイパーベルト氷微粒子',
+      gonggong: '✦ 専用アニメーション: 濃赤色ソリン・水氷昇華ヘイズ ＋ 衛星相柳の周回 ＋ カイパーベルト氷微粒子',
+      sedna: '✦ 専用アニメーション: 極遠日点（937 AU）超深宇宙メタン・ソリン氷地表 ＋ オールトの雲内縁氷粒子',
+      ixion: '✦ 専用アニメーション: 冥王星族暗赤色ソリン・水氷地表 ＋ カイパーベルト共鳴氷粒子',
+      uni: '✦ 専用アニメーション: 古典的カイパーベルト天体・二重小惑星（ティニア）共転 ＋ 冷たいキュビワノ氷粒子',
+      varuna: '✦ 専用アニメーション: 高速自転偏平楕円体・暗色有機物ソリン ＋ カイパーベルト共鳴天体背景',
+      tx300: '✦ 専用アニメーション: ハウメア衝突族高アルベド純水氷結晶地表 ＋ カイパーベルト氷粒子',
+      tc302: '✦ 専用アニメーション: 赤色大型散乱円盤天体・多層ソリン有機物 ＋ 外縁散乱氷粒子',
+      encke: '✦ 専用アニメーション: 木星族彗星・近日点揮発ガスジェット噴出 ＋ 扇状コマ・暗色微粒子ダストテイル',
+      churyumov_gerasimenko: '✦ 専用アニメーション: アヒル型2葉接触連星核・崖面からのガス・ダストジェット活動 ＋ 探査機ロゼッタ周回',
+      giacobini_zinner: '✦ 専用アニメーション: 青白いCO+イオンテイル流動 ＋ 探査機ICEテイル通過 ＋ 10月りゅう座流星群母天体',
+      halley: '✦ 専用アニメーション: 逆行ハレー型彗星・暗黒ピーナッツ状核 ＋ 探査機ジオット最接近 ＋ 太陽放射圧イオン・長大ダストテイル',
+      swift_tuttle: '✦ 専用アニメーション: ペルセウス座流星群母天体・極高密度流星物質ストリーム放出 ＋ コマ・二重テイル',
     };
 
     /**
-     * 天体・衛星軌道拡大専用ビューのDOMキャッシュ構造
+     * 天体・衛星軌道拡大ビューのDOMキャッシュ構造
      */
     interface MoonSystemStageCache {
       targetId: string;
@@ -4083,8 +4250,8 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     let activeMoonStageCache: MoonSystemStageCache | null = null;
 
     /**
-     * 指定した14天体（太陽・水星・金星・地球・火星・ケレス・木星・土星・天王星・海王星・冥王星・ハウメア・マケマケ・エリス）の
-     * 天体＋衛星軌道・近傍重力圏拡大専用ビューSVGステージを構築する
+     * 全28天体（太陽・8惑星・5公認準惑星・外縁天体・周期彗星）の
+     * 天体＋衛星軌道・近傍重力圏拡大ビューSVGステージを構築する
      */
     function buildMoonSystemStageDom(targetId: string) {
       if (!msGridGroupEl || !msOrbitsGroupEl || !msCentralPlanetGroupEl || !msMoonsNodesGroupEl) return;
@@ -4275,6 +4442,57 @@ function getBodyIllustrationSvg(id: string, color: string): string {
             np.el.setAttribute('cx', px.toFixed(1));
             np.el.setAttribute('cy', py.toFixed(1));
             np.el.setAttribute('fill-opacity', ((1 - prog) * 0.88).toFixed(2));
+          }
+        });
+      }
+
+      // 周期彗星専用：球体を包む淡く光るコマ（ガス・ダスト外気圏）＋長大な反太陽方向の二重テイル（青いイオンテイル＆白黄色ダストテイル）＋昇華ジェット微粒子アニメーション
+      if (planet && planet.bodyClass === 'comet') {
+        const comaGlowEl = document.createElementNS(svgNs, 'circle');
+        comaGlowEl.setAttribute('cx', '0');
+        comaGlowEl.setAttribute('cy', '0');
+        comaGlowEl.setAttribute('r', (centralR * 1.55).toFixed(1));
+        comaGlowEl.setAttribute('fill', 'rgba(45, 212, 191, 0.22)');
+        comaGlowEl.setAttribute('filter', 'url(#planet-glow)');
+        msCentralPlanetGroupEl.appendChild(comaGlowEl);
+
+        const cometTailEl = document.createElementNS(svgNs, 'path');
+        cometTailEl.setAttribute('fill', 'url(#comet-tail-grad)');
+        msCentralPlanetGroupEl.appendChild(cometTailEl);
+
+        const jetParticles: { el: SVGCircleElement; angleDeg: number; speed: number; phase: number }[] = [];
+        for (let i = 0; i < 20; i++) {
+          const jpEl = document.createElementNS(svgNs, 'circle');
+          jpEl.setAttribute('r', (1.2 + (i % 3) * 0.7).toFixed(1));
+          jpEl.setAttribute('fill', i % 2 === 0 ? '#5eead4' : '#fef08a');
+          msCentralPlanetGroupEl.appendChild(jpEl);
+          jetParticles.push({
+            el: jpEl,
+            angleDeg: -45 + (i * 27) % 90,
+            speed: 1.2 + (i % 4) * 0.4,
+            phase: i / 20,
+          });
+        }
+
+        atmoUpdaters.push((t) => {
+          const tailLen = centralR * (2.85 + Math.sin(t * 1.8) * 0.22);
+          const tailHalfW = centralR * (0.82 + Math.cos(t * 1.5) * 0.08);
+          cometTailEl.setAttribute(
+            'd',
+            `M 0,-${tailHalfW.toFixed(1)} L ${tailLen.toFixed(1)},0 L 0,${tailHalfW.toFixed(1)} Z`
+          );
+          cometTailEl.setAttribute('opacity', (0.58 + Math.sin(t * 2.4) * 0.14).toFixed(2));
+          comaGlowEl.setAttribute('r', (centralR * (1.52 + Math.sin(t * 2.1) * 0.06)).toFixed(1));
+
+          for (const jp of jetParticles) {
+            const prog = ((t * 0.45 * jp.speed + jp.phase) % 1 + 1) % 1;
+            const dist = centralR * (0.85 + prog * 1.8);
+            const rad = jp.angleDeg * DEG_TO_RAD;
+            const jx = Math.cos(rad) * dist;
+            const jy = Math.sin(rad) * dist + Math.sin(t * 3 + jp.phase * 8) * 3;
+            jp.el.setAttribute('cx', jx.toFixed(1));
+            jp.el.setAttribute('cy', jy.toFixed(1));
+            jp.el.setAttribute('fill-opacity', ((1 - prog) * 0.85).toFixed(2));
           }
         });
       }
@@ -5898,7 +6116,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     }
 
     /**
-     * 天体・衛星軌道拡大専用ビューの毎フレーム描画更新
+     * 天体・衛星軌道拡大ビューの毎フレーム描画更新
      */
     function renderMoonSystemView() {
       if (!activeMoonStageCache) return;
@@ -6102,7 +6320,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     }
 
     /**
-     * 詳細パネル内の「専用拡大ビューで表示」ボタンの表示・文言を同期する
+     * 詳細パネル内の「拡大ビューで表示」ボタンの表示・文言を同期する
      */
     function syncOpenMoonViewButton(targetId: string) {
       const isTarget = moonTargetIds.includes(targetId);
@@ -6123,8 +6341,8 @@ function getBodyIllustrationSvg(id: string, color: string): string {
           btnOpenMoonViewEl.classList.add('is-active-view');
         } else {
           btnOpenMoonViewEl.textContent = hasMoons
-            ? `🔍 ${bodyNameJa}と衛星軌道の専用拡大ビューを開く`
-            : `🔍 ${bodyNameJa}の内部断面・近傍圏 専用拡大ビューを開く`;
+            ? `🔍 ${bodyNameJa}と衛星軌道の拡大ビューを開く`
+            : `🔍 ${bodyNameJa}の内部断面・近傍圏 拡大ビューを開く`;
           btnOpenMoonViewEl.classList.remove('is-active-view');
         }
       }
@@ -6133,13 +6351,13 @@ function getBodyIllustrationSvg(id: string, color: string): string {
         btnSidebarOpenMoonViewEl.style.display = 'flex';
         btnSidebarOpenMoonViewEl.textContent = simState.isMoonSystemView
           ? '← 太陽系全体ビューへ戻る'
-          : `🚀 ${bodyNameJa} の専用拡大ビューを開く`;
+          : `🚀 ${bodyNameJa} の拡大ビューを開く`;
       }
     }
 
     /**
-     * 対象14天体（太陽・水星・金星・地球・火星・ケレス・木星・土星・天王星・海王星・冥王星・ハウメア・マケマケ・エリス）の
-     * 天体・衛星軌道拡大専用ビューを開く
+     * 全28天体（太陽・8惑星・5公認準惑星・外縁天体・周期彗星）の
+     * 天体・衛星軌道拡大ビューを開く
      */
     function openMoonSystemView(targetBodyId?: string) {
       const resolvedId =
@@ -6190,7 +6408,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
 
       const bodyNameJa = isSun ? sunData.nameJa : planet!.nameJa;
       if (hudZoneNameEl) {
-        hudZoneNameEl.textContent = `4. 拡大専用ビュー (${bodyNameJa})`;
+        hudZoneNameEl.textContent = `4. 拡大ビュー (${bodyNameJa})`;
       }
       if (hudZoneRangeEl) {
         if (isSun) {
@@ -6223,7 +6441,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     }
 
     /**
-     * 天体・衛星軌道拡大専用ビューを閉じて太陽系全体ビューへ戻る
+     * 天体・衛星軌道拡大ビューを閉じて太陽系全体ビューへ戻る
      */
     function closeMoonSystemView(options?: { keepPlanetSelected?: boolean }) {
       if (!simState.isMoonSystemView) return;
@@ -6361,13 +6579,13 @@ function getBodyIllustrationSvg(id: string, color: string): string {
      * 天体（太陽・惑星・準惑星・準惑星候補・彗星・または縮尺全体）を選択してフォーカスする
      */
     function selectCelestialBody(targetId: string) {
-      // 専用拡大ビュー中に対象10天体がクリックされた場合はそのまま専用拡大ビュー内で天体を切り替える
+      // 拡大ビュー中に対象天体がクリックされた場合はそのまま拡大ビュー内で天体を切り替える
       if (simState.isMoonSystemView) {
         if (moonTargetIds.includes(targetId)) {
           openMoonSystemView(targetId);
           return;
         }
-        // 太陽や対象外天体（水星・金星・ケレス・彗星など）や全体表示が選ばれた場合は専用ビューを解除
+        // 全体表示などが選ばれた場合は拡大ビューを解除
         closeMoonSystemView({ keepPlanetSelected: false });
       }
 
@@ -6793,7 +7011,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
 
     // --- イベントリスナーの登録 ---
 
-    // 1. 3つの表示縮尺（内惑星・外惑星・外縁天体）切り替えボタン ＋ 4. 衛星系拡大専用ビューボタン
+    // 1. 3つの表示縮尺（内惑星・外惑星・外縁天体）切り替えボタン ＋ 4. 拡大ビューボタン
     document.querySelectorAll<HTMLButtonElement>('.zone-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const zone = (btn.dataset.scaleZone || 'inner') as ScaleZone;
@@ -10338,7 +10556,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     color: #fde047;
   }
 
-  /* ==================== 4. 惑星・衛星軌道 専用拡大ビュー (10天体) スタイル ==================== */
+  /* ==================== 4. 天体・衛星軌道 拡大ビュー (全天体対応) スタイル ==================== */
   .moon-mode-btn {
     display: inline-flex;
     align-items: center;
@@ -10548,7 +10766,7 @@ function getBodyIllustrationSvg(id: string, color: string): string {
     color: #fde047;
   }
 
-  /* 専用拡大ビューステージ内のSVG要素スタイル */
+  /* 拡大ビューステージ内のSVG要素スタイル */
   :global(.ms-outer-grid-ring) {
     stroke-dasharray: 4 6;
     opacity: 0.45;
